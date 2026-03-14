@@ -289,13 +289,12 @@ oatf-spec/scenarios/
 
 **Index page (/)**
 - Nav bar: OATF logo + "Scenarios", links to Registry, Editor, About (oatf.io), GitHub
-- Filter bar: protocol chips, severity dropdown, classification dropdown, interaction model chips
+- Filter bar: protocol chips, severity dropdown, classification dropdown, impact dropdown
 - Scenario card grid (3-column desktop, 1-column mobile)
-- Each card: ID (monospace), severity badge, title (serif), one-line description, protocol tags, interaction model label
+- Each card: ID (monospace), severity badge, title (serif), one-line description, protocol tags
 - Result count
 - Filter state in URL query params
 
-**Detail/edit page**
 **Detail page (/OATF-001/)**
 - Same nav bar as index
 - Read-only scenario visualization with "Open in Editor" button
