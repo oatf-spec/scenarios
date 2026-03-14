@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { ValidationError } from '../../lib/validation';
 
 interface Props {
@@ -7,7 +7,15 @@ interface Props {
 }
 
 export default function ValidationPanel({ errors, onLineClick }: Props) {
-  const [collapsed, setCollapsed] = useState(errors.length === 0);
+  const [collapsed, setCollapsed] = useState(true);
+  const prevCount = useRef(0);
+
+  // Auto-expand when errors appear, auto-collapse when they clear
+  useEffect(() => {
+    if (errors.length > 0 && prevCount.current === 0) setCollapsed(false);
+    if (errors.length === 0 && prevCount.current > 0) setCollapsed(true);
+    prevCount.current = errors.length;
+  }, [errors.length]);
 
   return (
     <div className="border-t border-border" style={{ background: '#11141c' }}>
@@ -31,9 +39,9 @@ export default function ValidationPanel({ errors, onLineClick }: Props) {
             <div className="px-3 pb-2 text-xs text-text-2">No errors</div>
           ) : (
             <div className="flex flex-col">
-              {errors.map((err, i) => (
+              {errors.map((err) => (
                 <div
-                  key={i}
+                  key={`${err.code}-${err.line ?? 0}-${err.message}`}
                   className="flex items-center gap-3 px-3 py-1.5 text-xs hover:bg-[#1a1d27] border-t border-border"
                 >
                   <span className="font-mono text-sev-critical font-bold shrink-0">{err.code}</span>

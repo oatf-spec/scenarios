@@ -16,11 +16,12 @@ const PROTOCOL_BG: Record<string, string> = {
 interface Props {
   actor: ActorModel;
   showHeader: boolean;
+  globalOffset: number;
   highlightedPhase?: number;
   onPhaseClick?: (index: number) => void;
 }
 
-export default function ActorLane({ actor, showHeader, highlightedPhase, onPhaseClick }: Props) {
+export default function ActorLane({ actor, showHeader, globalOffset, highlightedPhase, onPhaseClick }: Props) {
   const borderColor = PROTOCOL_COLORS[actor.protocol] ?? '#2a2d37';
 
   return (
@@ -46,8 +47,8 @@ export default function ActorLane({ actor, showHeader, highlightedPhase, onPhase
           <PhaseCard
             key={phase.name}
             phase={phase}
-            index={i}
-            highlighted={highlightedPhase === i}
+            index={globalOffset + i}
+            highlighted={highlightedPhase === globalOffset + i}
             onPhaseClick={onPhaseClick}
           />
         ))}

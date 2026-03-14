@@ -204,7 +204,7 @@ export default function EditorView({ initialYaml, scenarioId, onYamlChange }: Pr
                 tabSize: 2,
                 automaticLayout: true,
               }}
-              theme="vs-dark"
+              theme="oatf-dark"
             />
           ) : (
             <div className="flex items-center justify-center h-full text-text-2 text-sm">

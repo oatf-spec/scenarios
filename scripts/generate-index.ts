@@ -96,10 +96,16 @@ function main() {
 
   for (const filePath of yamlFiles) {
     const content = fs.readFileSync(filePath, 'utf-8');
-    const doc = yaml.load(content) as any;
+    let doc: any;
+    try {
+      doc = yaml.load(content);
+    } catch (e: any) {
+      console.error(`  ✗ ${filePath}: invalid YAML — ${e.reason ?? e.message}`);
+      continue;
+    }
 
     if (!doc?.attack?.id) {
-      console.warn(`Skipping ${filePath}: no attack.id found`);
+      console.warn(`  Skipping ${filePath}: no attack.id found`);
       continue;
     }
 

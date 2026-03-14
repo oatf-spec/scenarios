@@ -14,7 +14,7 @@ export function validate(yamlText: string): ValidationError[] {
   try {
     doc = yaml.load(yamlText);
   } catch (e: any) {
-    const line = e.mark?.line ? e.mark.line + 1 : undefined;
+    const line = e.mark?.line !== undefined ? e.mark.line + 1 : undefined;
     errors.push({ code: 'V-001', message: `Invalid YAML: ${e.reason ?? e.message}`, line });
     return errors;
   }

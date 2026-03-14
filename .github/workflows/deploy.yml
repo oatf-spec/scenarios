@@ -22,11 +22,10 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: '22.12'
           cache: npm
 
       - run: npm ci
-      - run: npm run generate-index
       - run: npm run build
 
       - uses: peaceiris/actions-gh-pages@v4

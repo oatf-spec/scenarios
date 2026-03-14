@@ -6,7 +6,7 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "dev": "astro dev",
+    "dev": "npm run generate-index && astro dev",
     "build": "npm run generate-index && astro build",
     "preview": "astro preview",
     "astro": "astro",

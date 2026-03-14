@@ -59,6 +59,8 @@ function validateScenario(filePath: string): string[] {
 
   if (!a.classification) {
     errors.push(`${relPath}: missing attack.classification`);
+  } else if (!a.classification.mappings || !Array.isArray(a.classification.mappings) || a.classification.mappings.length === 0) {
+    errors.push(`${relPath}: must have at least one framework mapping in classification.mappings`);
   }
 
   if (!a.indicators || !Array.isArray(a.indicators) || a.indicators.length === 0) {

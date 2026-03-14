@@ -1,7 +1,7 @@
 import type { TimelineModel } from './oatf-model';
 
 function mermaidSafe(s: string): string {
-  return s.replace(/[#;]/g, ' ');
+  return s.replace(/[\r\n]+/g, ' ').replace(/[#;:"{}]/g, ' ').trim();
 }
 
 function participantId(name: string): string {

@@ -32,9 +32,16 @@ export interface ActorModel {
   phases: PhaseModel[];
 }
 
+export interface CrossReference {
+  from_actor: string;
+  from_extractor: string;
+  to_actor: string;
+  to_phase: string;
+}
+
 export interface TimelineModel {
   actors: ActorModel[];
-  cross_references: [];
+  cross_references: CrossReference[];
 }
 
 function protocolFromMode(mode: string): string {
@@ -148,37 +155,51 @@ function buildPhase(
 
 /**
  * Estimate YAML line ranges for phases by searching the raw YAML string.
- * Returns an array of [startLine, endLine] pairs.
+ * Returns an array of [startLine, endLine] pairs (1-indexed).
+ * endBoundary limits the last phase's end line (for multi-actor scoping).
  */
 function estimatePhaseLines(
   yamlText: string,
   phaseNames: string[],
-  sectionOffset: number,
+  endBoundary?: number,
 ): Array<[number, number]> {
   const lines = yamlText.split('\n');
+  const totalLines = endBoundary ?? lines.length;
   const ranges: Array<[number, number]> = [];
 
   const phaseLineIndices: number[] = [];
   for (const name of phaseNames) {
-    // Find "- name: <phaseName>" pattern
+    const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const idx = lines.findIndex(
       (line, i) =>
         !phaseLineIndices.includes(i) &&
-        line.match(new RegExp(`^\\s+-\\s+name:\\s+${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*$`)),
+        line.match(new RegExp(`^\\s+-\\s+name:\\s+${escaped}\\s*$`)),
     );
     phaseLineIndices.push(idx >= 0 ? idx : -1);
   }
 
   for (let i = 0; i < phaseLineIndices.length; i++) {
-    const start = phaseLineIndices[i] >= 0 ? phaseLineIndices[i] + 1 + sectionOffset : 0;
+    const start = phaseLineIndices[i] >= 0 ? phaseLineIndices[i] + 1 : 0;
     const end =
       i + 1 < phaseLineIndices.length && phaseLineIndices[i + 1] >= 0
-        ? phaseLineIndices[i + 1] + sectionOffset
-        : lines.length + sectionOffset;
+        ? phaseLineIndices[i + 1] + 1
+        : totalLines;
     ranges.push([start, end]);
   }
 
   return ranges;
+}
+
+/** Find the 0-indexed line where a YAML key pattern appears. */
+function findActorBoundary(yamlText: string, actorName: string, after: number): number {
+  const lines = yamlText.split('\n');
+  const escaped = actorName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  for (let i = after; i < lines.length; i++) {
+    if (lines[i].match(new RegExp(`^\\s+-\\s+name:\\s+${escaped}\\s*$`))) {
+      return i;
+    }
+  }
+  return lines.length;
 }
 
 export function extractModel(doc: any, yamlText?: string): TimelineModel {
@@ -193,12 +214,19 @@ export function extractModel(doc: any, yamlText?: string): TimelineModel {
 
     // Multi-actor form
     if (execution.actors && Array.isArray(execution.actors)) {
-      const actors: ActorModel[] = execution.actors.map((actor: any) => {
+      const actorNames = execution.actors.map((a: any) => a.name ?? 'default');
+      const actors: ActorModel[] = execution.actors.map((actor: any, ai: number) => {
         const mode = actor.mode ?? 'unknown';
         const rawPhases = actor.phases ?? [];
         const phaseNames = rawPhases.map((p: any) => p.name ?? 'unnamed');
+
+        // Scope phase line ranges to this actor's block
+        let endBoundary: number | undefined;
+        if (yamlText && ai + 1 < actorNames.length) {
+          endBoundary = findActorBoundary(yamlText, actorNames[ai + 1], 0);
+        }
         const lineRanges = yamlText
-          ? estimatePhaseLines(yamlText, phaseNames, 0)
+          ? estimatePhaseLines(yamlText, phaseNames, endBoundary)
           : phaseNames.map(() => [0, 0] as [number, number]);
 
         const phases = rawPhases.map((p: any, i: number) => {
@@ -223,7 +251,7 @@ export function extractModel(doc: any, yamlText?: string): TimelineModel {
       const rawPhases = execution.phases;
       const phaseNames = rawPhases.map((p: any) => p.name ?? 'unnamed');
       const lineRanges = yamlText
-        ? estimatePhaseLines(yamlText, phaseNames, 0)
+        ? estimatePhaseLines(yamlText, phaseNames)
         : phaseNames.map(() => [0, 0] as [number, number]);
 
       const phases = rawPhases.map((p: any, i: number) => {

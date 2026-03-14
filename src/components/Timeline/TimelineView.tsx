@@ -15,15 +15,24 @@ export default function TimelineView({ model, highlightedPhase, onPhaseClick }: 
 
   const isMultiActor = model.actors.length > 1;
 
+  // Compute global phase offset per actor so indices are consistent with flatMap
+  let offset = 0;
+  const actorOffsets = model.actors.map((actor) => {
+    const o = offset;
+    offset += actor.phases.length;
+    return o;
+  });
+
   return (
     <div className="flex flex-col">
       {isMultiActor && <ReadinessBarrier />}
       <div className={`flex gap-4 ${isMultiActor ? 'flex-col lg:flex-row' : 'flex-col'}`}>
-        {model.actors.map((actor) => (
+        {model.actors.map((actor, ai) => (
           <ActorLane
             key={actor.name}
             actor={actor}
             showHeader={isMultiActor}
+            globalOffset={actorOffsets[ai]}
             highlightedPhase={highlightedPhase}
             onPhaseClick={onPhaseClick}
           />
