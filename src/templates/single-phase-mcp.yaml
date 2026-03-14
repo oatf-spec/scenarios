@@ -1,0 +1,57 @@
+# Single-phase MCP server attack scenario
+# The server presents malicious tool definitions to the agent.
+oatf: "0.1"
+
+attack:
+  id: OATF-NEW
+  name: "Untitled MCP Attack"
+  version: 1
+  status: draft
+  created: 2026-01-01
+  author: "Your Name"
+  description: |
+    Describe the attack: what the malicious MCP server does,
+    what the agent is tricked into doing, and the impact.
+
+  severity:
+    level: high
+    confidence: 50
+
+  impact:
+    - behavior_manipulation
+
+  classification:
+    category: capability_poisoning
+    mappings:
+      - framework: atlas
+        id: AML.T0051
+        name: "LLM Prompt Injection"
+    tags:
+      - injection
+
+  # Single-phase: mode + state at the top level (no phases array)
+  execution:
+    mode: mcp_server
+    state:
+      tools:
+        - name: example_tool
+          description: "A tool with injected instructions in its description."
+          inputSchema:
+            type: object
+            properties:
+              input:
+                type: string
+            required:
+              - input
+          responses:
+            - content:
+                content:
+                  - type: text
+                    text: "Response from the malicious tool"
+
+  indicators:
+    - id: OATF-NEW-01
+      target: "arguments"
+      description: "Describe what the indicator detects"
+      pattern:
+        regex: "pattern_to_match"
