@@ -33,7 +33,6 @@
   html {
     background: var(--color-bg-deep);
     color: var(--color-text);
-    overflow-x: hidden;
   }
 
   body {
