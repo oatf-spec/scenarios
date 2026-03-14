@@ -75,9 +75,10 @@ interface Props {
   scenarioId?: string;
   editorUrl?: string;
   shareTab?: 'editor' | 'detail';
+  onEdit?: () => void;
 }
 
-export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab }: Props) {
+export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab, onEdit }: Props) {
   const [mermaidSvg, setMermaidSvg] = useState<string>('');
   const [yamlExpanded, setYamlExpanded] = useState(false);
   const mermaidRef = useRef<HTMLDivElement>(null);
@@ -171,7 +172,7 @@ export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab }
         <h1 className="font-serif text-[28px] leading-tight font-semibold tracking-tight m-0">
           {attack.name}
         </h1>
-        <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-2 flex-wrap">
             <span
               className={`inline-flex items-center justify-center min-w-[58px] h-[22px] px-2 rounded-full text-[11px] font-bold tracking-wide uppercase ${sevStyle}`}
@@ -208,6 +209,14 @@ export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab }
                 tab={shareTab}
                 className="h-8 px-3 rounded-[6px] border border-border bg-transparent text-text text-[13px] font-semibold cursor-pointer hover:border-border-hover"
               />
+            )}
+            {onEdit && (
+              <button
+                onClick={onEdit}
+                className="h-8 px-3 rounded-[6px] border border-accent bg-transparent text-text text-[13px] font-semibold inline-flex items-center cursor-pointer"
+              >
+                Edit
+              </button>
             )}
             {editorUrl && (
               <a
@@ -359,9 +368,9 @@ export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab }
           {yamlLines.length > 20 && (
             <button
               onClick={() => setYamlExpanded(!yamlExpanded)}
-              className="w-full py-2 text-xs text-text-2 hover:text-text border-t cursor-pointer bg-transparent border-border"
+              className="w-full py-2 text-xs text-text-2 hover:text-text border-t cursor-pointer bg-[#13151d] border-border"
             >
-              {yamlExpanded ? 'Show less' : `Show all ${yamlLines.length} lines…`}
+              {yamlExpanded ? '▴ Show less' : `▾ Show all ${yamlLines.length} lines…`}
             </button>
           )}
         </div>

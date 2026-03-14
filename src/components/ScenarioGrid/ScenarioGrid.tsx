@@ -220,14 +220,18 @@ export default function ScenarioGrid() {
 
           {/* Result count */}
           <div className="justify-self-end text-[13px] text-text-2 whitespace-nowrap">
-            Showing {filtered.length} of {scenarios.length} scenario{scenarios.length !== 1 ? 's' : ''}
+            {filtered.length !== scenarios.length
+              ? `${filtered.length} of ${scenarios.length} scenarios`
+              : `${scenarios.length} scenario${scenarios.length !== 1 ? 's' : ''}`}
           </div>
         </div>
 
         {/* Mobile filter row */}
         <div className="md:hidden flex items-center justify-between gap-2 px-4 py-3">
           <span className="text-[13px] text-text-2">
-            {filtered.length} scenario{filtered.length !== 1 ? 's' : ''}
+            {filtered.length !== scenarios.length
+              ? `${filtered.length} of ${scenarios.length} scenarios`
+              : `${scenarios.length} scenario${scenarios.length !== 1 ? 's' : ''}`}
           </span>
           <MobileFilterButton
             activeProtocols={activeProtocols}

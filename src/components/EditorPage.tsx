@@ -88,6 +88,7 @@ export default function EditorPage() {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-64px)]">
         <div className="bg-surface border border-border rounded-[6px] p-8 max-w-md w-full mx-4">
+          <div className="text-text-2 font-mono text-xs mb-3"># start from a template or paste YAML</div>
           <h2 className="font-serif text-xl font-semibold mb-1">New Scenario</h2>
           <p className="text-sm text-text-2 mb-6">Choose a template to get started.</p>
           <div className="flex flex-col gap-2">
@@ -144,7 +145,7 @@ export default function EditorPage() {
           <EditorView initialYaml={yamlText} onYamlChange={handleYamlChange} />
         </Suspense>
       ) : (
-        <DetailView yamlText={yamlText} shareTab="detail" />
+        <DetailView yamlText={yamlText} shareTab="detail" onEdit={() => setTab('editor')} />
       )}
     </div>
   );

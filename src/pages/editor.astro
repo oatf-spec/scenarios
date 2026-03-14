@@ -9,6 +9,7 @@ import '../styles/global.css';
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Editor | OATF Scenarios</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -42,8 +43,25 @@ import '../styles/global.css';
               <path d="M8 0.2C3.58 0.2 0 3.78 0 8.2C0 11.74 2.29 14.74 5.47 15.8C5.87 15.87 6.02 15.63 6.02 15.42C6.02 15.24 6.01 14.66 6.01 13.89C3.78 14.37 3.31 12.95 3.31 12.95C2.95 12.03 2.43 11.79 2.43 11.79C1.71 11.3 2.49 11.31 2.49 11.31C3.29 11.36 3.71 12.13 3.71 12.13C4.42 13.34 5.57 12.99 6.03 12.79C6.1 12.28 6.31 11.93 6.54 11.73C4.76 11.53 2.89 10.84 2.89 7.75C2.89 6.87 3.2 6.15 3.72 5.58C3.64 5.38 3.37 4.56 3.8 3.46C3.8 3.46 4.47 3.25 6 4.28C6.64 4.1 7.32 4.01 8 4.01C8.68 4.01 9.36 4.1 10 4.28C11.53 3.25 12.2 3.46 12.2 3.46C12.63 4.56 12.36 5.38 12.28 5.58C12.8 6.15 13.11 6.87 13.11 7.75C13.11 10.85 11.24 11.53 9.45 11.73C9.74 11.98 10 12.49 10 13.27C10 14.38 9.99 15.19 9.99 15.42C9.99 15.63 10.13 15.88 10.54 15.8C13.71 14.74 16 11.74 16 8.2C16 3.78 12.42 0.2 8 0.2Z"/>
             </svg>
           </a>
+          <button id="mobile-menu-btn" class="md:hidden text-text-2 hover:text-text cursor-pointer bg-transparent border-0 p-0" aria-label="Menu">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+          </button>
         </div>
       </header>
+      <div id="mobile-menu" class="hidden md:hidden border-b border-border" style="background: rgba(15,17,23,0.98);">
+        <nav class="flex flex-col px-6 py-3 gap-1">
+          <a class="text-sm text-text-2 py-2" href="/">Registry</a>
+          <a class="text-sm text-text py-2" href="/editor">Editor</a>
+          <a class="text-sm text-text-2 py-2" href="https://oatf.io" target="_blank" rel="noopener">About</a>
+        </nav>
+      </div>
+      <script is:inline>
+        document.getElementById('mobile-menu-btn').addEventListener('click', function() {
+          document.getElementById('mobile-menu').classList.toggle('hidden');
+        });
+      </script>
 
       <main>
         <EditorPage client:only="react" />
