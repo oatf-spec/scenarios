@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import yaml from 'js-yaml';
 import { extractModel, type TimelineModel } from '../../lib/oatf-model';
 import { generateSequence } from '../../lib/oatf-sequence';
+import { highlightYaml } from '../../lib/yaml-highlight';
 import TimelineView from '../Timeline/TimelineView';
 
 const SEVERITY_STYLES: Record<string, string> = {
@@ -340,7 +341,7 @@ export default function DetailView({ yamlText, scenarioId }: Props) {
             </span>
           </div>
           <pre className="m-0 p-4 overflow-auto font-mono text-xs leading-relaxed text-[#d4d4d8]">
-            <code>{previewLines.join('\n')}</code>
+            <code>{highlightYaml(previewLines.join('\n'))}</code>
           </pre>
           {yamlLines.length > 20 && (
             <button
