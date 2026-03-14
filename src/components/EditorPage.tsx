@@ -22,11 +22,13 @@ export default function EditorPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Determine initial content from URL on mount
+  // Determine initial content and tab from URL on mount
   useEffect(() => {
     const hash = window.location.hash;
     const params = new URLSearchParams(window.location.search);
     const loadId = params.get('load');
+
+    if (params.get('tab') === 'detail') setTab('detail');
 
     if (hash.startsWith('#yaml=')) {
       // Shared scenario via compressed fragment
@@ -142,7 +144,7 @@ export default function EditorPage() {
           <EditorView initialYaml={yamlText} onYamlChange={handleYamlChange} />
         </Suspense>
       ) : (
-        <DetailView yamlText={yamlText} />
+        <DetailView yamlText={yamlText} shareTab="detail" />
       )}
     </div>
   );

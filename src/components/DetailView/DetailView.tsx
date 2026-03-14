@@ -3,6 +3,7 @@ import yaml from 'js-yaml';
 import { extractModel, type TimelineModel } from '../../lib/oatf-model';
 import { generateSequence } from '../../lib/oatf-sequence';
 import { highlightYaml } from '../../lib/yaml-highlight';
+import ShareButton from '../ShareButton';
 import TimelineView from '../Timeline/TimelineView';
 
 const SEVERITY_STYLES: Record<string, string> = {
@@ -73,9 +74,10 @@ interface Props {
   yamlText: string;
   scenarioId?: string;
   editorUrl?: string;
+  shareTab?: 'editor' | 'detail';
 }
 
-export default function DetailView({ yamlText, scenarioId, editorUrl }: Props) {
+export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab }: Props) {
   const [mermaidSvg, setMermaidSvg] = useState<string>('');
   const [yamlExpanded, setYamlExpanded] = useState(false);
   const mermaidRef = useRef<HTMLDivElement>(null);
@@ -200,6 +202,13 @@ export default function DetailView({ yamlText, scenarioId, editorUrl }: Props) {
             >
               Download
             </button>
+            {shareTab && (
+              <ShareButton
+                yamlText={yamlText}
+                tab={shareTab}
+                className="h-8 px-3 rounded-[6px] border border-border bg-transparent text-text text-[13px] font-semibold cursor-pointer hover:border-border-hover"
+              />
+            )}
             {editorUrl && (
               <a
                 href={editorUrl}
@@ -351,22 +360,6 @@ export default function DetailView({ yamlText, scenarioId, editorUrl }: Props) {
             >
               {yamlExpanded ? 'Show less' : `Show all ${yamlLines.length} lines…`}
             </button>
-          )}
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={handleDownload}
-            className="h-8 px-3 rounded-[6px] border border-border bg-transparent text-text text-[13px] font-semibold cursor-pointer"
-          >
-            Download .yaml
-          </button>
-          {scenarioId && (
-            <a
-              href={`/${scenarioId}/?tab=editor`}
-              className="h-8 px-3 rounded-[6px] bg-accent text-white text-[13px] font-semibold inline-flex items-center cursor-pointer border border-accent"
-            >
-              Open in Editor
-            </a>
           )}
         </div>
       </section>
