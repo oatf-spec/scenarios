@@ -8,6 +8,7 @@ interface ScenarioEntry {
   protocols: string[];
   interaction_models: string[];
   classification_category: string;
+  impact: string[];
   has_indicators: boolean;
   phase_count: number;
   file: string;
@@ -28,7 +29,6 @@ const SEVERITY_STYLES: Record<string, string> = {
 };
 
 const ALL_PROTOCOLS = ['MCP', 'A2A', 'AG-UI'] as const;
-const ALL_INTERACTION_MODELS = ['agent-to-tool', 'agent-to-agent', 'user-to-agent'] as const;
 
 function getUrlParams(): URLSearchParams {
   if (typeof window === 'undefined') return new URLSearchParams();
@@ -64,10 +64,8 @@ export default function ScenarioGrid() {
     return getUrlParams().get('category') ?? '';
   });
 
-  const [activeInteractions, setActiveInteractions] = useState<Set<string>>(() => {
-    const params = getUrlParams();
-    const i = params.get('interaction');
-    return i ? new Set(i.split(',')) : new Set<string>();
+  const [impact, setImpact] = useState<string>(() => {
+    return getUrlParams().get('impact') ?? '';
   });
 
   useEffect(() => {
@@ -86,21 +84,22 @@ export default function ScenarioGrid() {
     if (activeProtocols.size > 0) params.set('protocol', [...activeProtocols].join(','));
     if (severity) params.set('severity', severity);
     if (category) params.set('category', category);
-    if (activeInteractions.size > 0) params.set('interaction', [...activeInteractions].join(','));
+    if (impact) params.set('impact', impact);
     setUrlParams(params);
-  }, [activeProtocols, severity, category, activeInteractions]);
+  }, [activeProtocols, severity, category, impact]);
 
   useEffect(() => { syncUrl(); }, [syncUrl]);
 
-  // Derived: unique categories
+  // Derived: unique categories and impacts
   const categories = [...new Set(scenarios.map(s => s.classification_category))].sort();
+  const impacts = [...new Set(scenarios.flatMap(s => s.impact))].sort();
 
   // Filter scenarios
   const filtered = scenarios.filter(s => {
     if (activeProtocols.size > 0 && !s.protocols.some(p => activeProtocols.has(p))) return false;
     if (severity && s.severity_level !== severity) return false;
     if (category && s.classification_category !== category) return false;
-    if (activeInteractions.size > 0 && !s.interaction_models.some(m => activeInteractions.has(m))) return false;
+    if (impact && !s.impact.includes(impact)) return false;
     return true;
   });
 
@@ -109,15 +108,6 @@ export default function ScenarioGrid() {
       const next = new Set(prev);
       if (next.has(proto)) next.delete(proto);
       else next.add(proto);
-      return next;
-    });
-  }
-
-  function toggleInteraction(model: string) {
-    setActiveInteractions(prev => {
-      const next = new Set(prev);
-      if (next.has(model)) next.delete(model);
-      else next.add(model);
       return next;
     });
   }
@@ -139,7 +129,7 @@ export default function ScenarioGrid() {
       >
         {/* Desktop filters */}
         <div className="hidden md:grid items-center gap-4 px-6 py-4"
-             style={{ gridTemplateColumns: 'auto auto auto 1fr auto' }}>
+             style={{ gridTemplateColumns: 'auto auto auto auto 1fr auto' }}>
           {/* Protocol chips */}
           <div className="flex items-center gap-2">
             {ALL_PROTOCOLS.map(proto => (
@@ -201,33 +191,41 @@ export default function ScenarioGrid() {
             </select>
           </div>
 
-          {/* Interaction model chips */}
+          {/* Impact dropdown */}
           <div className="flex items-center gap-2">
-            {ALL_INTERACTION_MODELS.map(model => (
-              <button
-                key={model}
-                onClick={() => toggleInteraction(model)}
-                className={`inline-flex items-center justify-center h-7 px-2.5 rounded-[6px] text-xs font-semibold tracking-wide transition-colors cursor-pointer whitespace-nowrap
-                  ${activeInteractions.has(model)
-                    ? 'bg-[#20232d] text-text border border-text-2'
-                    : 'bg-[#20232d] text-text-2 border border-border hover:border-border-hover'
-                  }`}
-              >
-                {model}
-              </button>
-            ))}
+            <select
+              value={impact}
+              onChange={e => setImpact(e.target.value)}
+              className="h-8 rounded-[6px] border border-border bg-surface text-text text-[13px] px-2.5 min-w-[164px] cursor-pointer"
+              style={{
+                appearance: 'none',
+                backgroundImage: `linear-gradient(45deg, transparent 50%, #a1a1aa 50%), linear-gradient(135deg, #a1a1aa 50%, transparent 50%)`,
+                backgroundPosition: 'calc(100% - 16px) 13px, calc(100% - 11px) 13px',
+                backgroundSize: '5px 5px, 5px 5px',
+                backgroundRepeat: 'no-repeat',
+              }}
+            >
+              <option value="">All impacts</option>
+              {impacts.map(i => (
+                <option key={i} value={i}>{formatCategory(i)}</option>
+              ))}
+            </select>
           </div>
 
           {/* Result count */}
           <div className="justify-self-end text-[13px] text-text-2 whitespace-nowrap">
-            Showing {filtered.length} of {scenarios.length} scenario{scenarios.length !== 1 ? 's' : ''}
+            {filtered.length !== scenarios.length
+              ? `${filtered.length} of ${scenarios.length} scenarios`
+              : `${scenarios.length} scenario${scenarios.length !== 1 ? 's' : ''}`}
           </div>
         </div>
 
         {/* Mobile filter row */}
         <div className="md:hidden flex items-center justify-between gap-2 px-4 py-3">
           <span className="text-[13px] text-text-2">
-            {filtered.length} scenario{filtered.length !== 1 ? 's' : ''}
+            {filtered.length !== scenarios.length
+              ? `${filtered.length} of ${scenarios.length} scenarios`
+              : `${scenarios.length} scenario${scenarios.length !== 1 ? 's' : ''}`}
           </span>
           <MobileFilterButton
             activeProtocols={activeProtocols}
@@ -237,8 +235,9 @@ export default function ScenarioGrid() {
             category={category}
             setCategory={setCategory}
             categories={categories}
-            activeInteractions={activeInteractions}
-            toggleInteraction={toggleInteraction}
+            impact={impact}
+            setImpact={setImpact}
+            impacts={impacts}
           />
         </div>
       </section>
@@ -285,21 +284,16 @@ function ScenarioCard({ scenario }: { scenario: ScenarioEntry }) {
         {descOneLine}
       </div>
 
-      {/* Bottom: protocols + interaction model */}
-      <div className="mt-auto flex items-end justify-between gap-2.5">
-        <div className="flex gap-2 flex-wrap">
-          {scenario.protocols.map(p => (
-            <span
-              key={p}
-              className={`inline-flex items-center h-[22px] px-2 rounded-full text-[11px] font-bold tracking-wide text-white ${PROTOCOL_COLORS[p] ?? 'bg-sev-info'}`}
-            >
-              {p}
-            </span>
-          ))}
-        </div>
-        <span className="text-xs text-text-2 lowercase whitespace-nowrap">
-          {scenario.interaction_models[0]}
-        </span>
+      {/* Bottom: protocols */}
+      <div className="mt-auto flex gap-2 flex-wrap">
+        {scenario.protocols.map(p => (
+          <span
+            key={p}
+            className={`inline-flex items-center h-[22px] px-2 rounded-full text-[11px] font-bold tracking-wide text-white ${PROTOCOL_COLORS[p] ?? 'bg-sev-info'}`}
+          >
+            {p}
+          </span>
+        ))}
       </div>
     </a>
   );
@@ -310,7 +304,8 @@ function MobileFilterButton({
   severity, setSeverity,
   category, setCategory,
   categories,
-  activeInteractions, toggleInteraction,
+  impact, setImpact,
+  impacts,
 }: {
   activeProtocols: Set<string>;
   toggleProtocol: (p: string) => void;
@@ -319,11 +314,12 @@ function MobileFilterButton({
   category: string;
   setCategory: (v: string) => void;
   categories: string[];
-  activeInteractions: Set<string>;
-  toggleInteraction: (m: string) => void;
+  impact: string;
+  setImpact: (v: string) => void;
+  impacts: string[];
 }) {
   const [open, setOpen] = useState(false);
-  const activeCount = activeProtocols.size + (severity ? 1 : 0) + (category ? 1 : 0) + activeInteractions.size;
+  const activeCount = activeProtocols.size + (severity ? 1 : 0) + (category ? 1 : 0) + (impact ? 1 : 0);
 
   return (
     <div className="relative">
@@ -381,22 +377,17 @@ function MobileFilterButton({
             </select>
           </div>
           <div>
-            <div className="text-xs text-text-2 uppercase tracking-wider mb-2 font-semibold">Interaction</div>
-            <div className="flex gap-2 flex-wrap">
-              {ALL_INTERACTION_MODELS.map(model => (
-                <button
-                  key={model}
-                  onClick={() => toggleInteraction(model)}
-                  className={`h-7 px-2.5 rounded-[6px] text-xs font-semibold cursor-pointer
-                    ${activeInteractions.has(model)
-                      ? 'bg-[#20232d] text-text border border-text-2'
-                      : 'bg-[#20232d] text-text-2 border border-border'
-                    }`}
-                >
-                  {model}
-                </button>
+            <div className="text-xs text-text-2 uppercase tracking-wider mb-2 font-semibold">Impact</div>
+            <select
+              value={impact}
+              onChange={e => setImpact(e.target.value)}
+              className="w-full h-8 rounded-[6px] border border-border bg-[#20232d] text-text text-[13px] px-2"
+            >
+              <option value="">All</option>
+              {impacts.map(i => (
+                <option key={i} value={i}>{formatCategory(i)}</option>
               ))}
-            </div>
+            </select>
           </div>
           <button
             onClick={() => setOpen(false)}

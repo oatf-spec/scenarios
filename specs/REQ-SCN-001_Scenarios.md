@@ -80,12 +80,17 @@ The site must:
 - Filter state persisted in URL query params
 - Data source: lightweight index generated at build time from scenario YAML files
 
-**Detail/edit page (per scenario):**
-- Two tabs: Detail and Editor
-- Detail tab: full scenario visualization (see section 6.3)
+**Detail page (per registry scenario, prerendered):**
+- Read-only scenario visualization (see section 6.3)
+- "Open in Editor" link navigates to /editor?load=<ID>
+- No Monaco editor — keeps prerendered pages lightweight
+
+**Editor page (/editor, client-only):**
+- Two tabs: Editor and Detail
 - Editor tab: split-pane with Monaco on left and live phase timeline on right (see section 6.4)
-- Registry scenarios arrive on Detail tab by default
-- Custom scenarios arrive on Editor tab by default
+- Detail tab: full scenario visualization from current editor content (see section 6.3)
+- Entry points: blank (template selector), ?load=<ID> (fetch registry scenario), #yaml=<lz> (shared/custom)
+- Share always produces /editor#yaml=<lz> — recipient gets editable scenario
 
 **Visualization - Phase Timeline (custom React component):**
 - Compact structural map of the attack: one card per phase, stacked vertically per actor
@@ -111,9 +116,9 @@ The site must:
 - Paste and file upload support
 
 **Sharing:**
-- Registry scenarios: clean URLs (/OATF-001/)
-- Custom scenarios: #yaml=<lz-compressed> fragment URLs
-- Share and Download buttons
+- Registry scenarios: clean URLs (/OATF-001/) for read-only view
+- Share from editor: /editor#yaml=<lz-compressed> — always editable
+- Download as .yaml file
 
 **Validation panel:**
 - JS subset of OATF V-codes (structural checks without CEL or binding-specific logic)
@@ -273,28 +278,32 @@ oatf-spec/scenarios/
 
 | URL | Content | Rendering |
 |-----|---------|-----------|
-| scenarios.oatf.io/ | Registry index | Prerendered |
-| scenarios.oatf.io/OATF-001/ | Detail tab for registry scenario | Prerendered shell, hydrated |
-| scenarios.oatf.io/OATF-001/?tab=editor | Editor tab for registry scenario | Hydrated |
-| scenarios.oatf.io/new | Editor with template selector | Client-only |
-| scenarios.oatf.io/view#yaml=<lz> | Detail tab for custom YAML | Client-only |
-| scenarios.oatf.io/edit#yaml=<lz> | Editor tab for custom YAML | Client-only |
-| scenarios.oatf.io/coverage/ | Coverage matrix (Phase 2) | Prerendered |
+| oatf.dev/ | Registry index | Prerendered |
+| oatf.dev/OATF-001/ | Read-only detail page for registry scenario | Prerendered, hydrated |
+| oatf.dev/editor | Editor with template selector | Client-only |
+| oatf.dev/editor?load=OATF-001 | Editor pre-loaded with registry scenario | Client-only |
+| oatf.dev/editor#yaml=<lz> | Editor with shared/custom YAML | Client-only |
+| oatf.dev/coverage/ | Coverage matrix (Phase 2) | Prerendered |
 
 ### 6.2 Page Inventory
 
 **Index page (/)**
-- Nav bar: OATF logo + "Scenarios", links to Coverage, About, oatf.io, GitHub
-- Filter bar: protocol chips, severity dropdown, classification dropdown, interaction model chips
+- Nav bar: OATF logo + "Scenarios", links to Registry, Editor, About (oatf.io), GitHub
+- Filter bar: protocol chips, severity dropdown, classification dropdown, impact dropdown
 - Scenario card grid (3-column desktop, 1-column mobile)
-- Each card: ID (monospace), severity badge, title (serif), one-line description, protocol tags, interaction model label
+- Each card: ID (monospace), severity badge, title (serif), one-line description, protocol tags
 - Result count
 - Filter state in URL query params
 
-**Detail/edit page**
+**Detail page (/OATF-001/)**
 - Same nav bar as index
-- Two tabs: Detail, Editor
-- Shared state: both tabs read from and write to the same parsed YAML and extracted timeline model
+- Read-only scenario visualization with "Open in Editor" button
+- Prerendered for SEO and fast first paint
+
+**Editor page (/editor)**
+- Same nav bar as index (Editor link active)
+- Two tabs: Editor, Detail — shared YAML state between them
+- Template selector on first visit (no content), or pre-loaded via ?load=ID or #yaml=<lz>
 
 ### 6.3 Detail Tab Sections
 
@@ -365,11 +374,14 @@ The timeline preview does not include the Mermaid sequence diagram. The Detail t
 
 ### 6.5 Data Flow
 
-**Registry scenario:**
+**Registry scenario (read-only):**
 Route /OATF-001/ -> prerendered HTML shell -> JS hydration -> fetch YAML -> js-yaml.load() -> oatf-model.extract() -> TimelineView renders -> (if 2+ phases or multi-actor: lazy oatf-sequence.generate() -> Mermaid.render()) -> detail view complete
 
-**Custom scenario:**
-Route /view#yaml=<lz> -> LZString decompress -> same pipeline as above
+**Editor with registry scenario:**
+Route /editor?load=OATF-001 -> fetch /library/OATF-001.yaml -> load into Monaco + parse pipeline
+
+**Editor with shared scenario:**
+Route /editor#yaml=<lz> -> LZString decompress -> load into Monaco + parse pipeline
 
 **Live editing:**
 Keystroke -> debounce 150ms -> js-yaml.load() -> (parse error? hold last valid state) -> oatf-model.extract() -> timeline preview re-renders (< 100ms) -> shared state updated (Detail tab re-renders on switch)
@@ -380,7 +392,7 @@ Editor content -> LZString.compressToEncodedURIComponent() -> URL -> copy to cli
 
 URL length handling: warn at 8,000 characters (Slack, Teams, and enterprise proxies truncate or reject URLs above this). Suggest download instead at 15,000 characters. Most single-scenario documents compress to 2,000-3,000 characters and will share without issue.
 
-Share always generates a fragment URL from the current editor content, even when editing a registry scenario. If someone opens /OATF-001/, switches to Editor, modifies the YAML, and clicks Share, the generated URL is /view#yaml=<compressed-modified-yaml> — not a link back to /OATF-001/. The original registry URL is unaffected.
+Share always generates an editor fragment URL from the current editor content: /editor#yaml=<compressed>. Even when editing a registry scenario loaded via ?load=OATF-001, the share URL contains the full YAML, not a reference to the registry. The recipient opens the editor with the exact content, ready to view or modify.
 
 ## 7. Content Specification
 
@@ -448,23 +460,22 @@ V-001 Valid YAML, V-002 oatf field present, V-003 attack object present, V-004 e
 | Interaction | Behavior |
 |-------------|----------|
 | Filter scenarios on index | Cards filter in place; URL query params update |
-| Click scenario card | Navigate to /OATF-XXX/, Detail tab |
-| Switch to Editor tab | Lazy-load Monaco; show split-pane with YAML + timeline preview |
+| Click scenario card | Navigate to /OATF-XXX/ read-only detail page |
+| Click "Open in Editor" on detail page | Navigate to /editor?load=OATF-XXX |
 | Edit YAML in Editor | Debounced: re-extract timeline model, re-render preview, update validation |
 | Click phase card in timeline (editor) | Scroll editor to that phase YAML, highlight line range |
 | Move cursor in editor | Highlight corresponding phase card in timeline |
-| Switch to Detail tab | Re-renders from shared state including sequence diagram |
-| Click Share | Generate #yaml=<lz> URL, copy to clipboard, show toast |
+| Switch to Detail tab (editor page) | Re-renders from shared state including sequence diagram |
+| Click Share | Generate /editor#yaml=<lz> URL, copy to clipboard, show toast |
 | Click Download | Browser downloads .yaml file |
 | Click template button | Confirm if unsaved; replace editor content |
 | Click insert button | Insert YAML snippet at cursor with correct indentation |
 | Click validation error | Scroll editor to offending line |
 | Click framework technique link | Open upstream source in new tab |
-| Click phase permalink (detail) | Scroll to phase in timeline |
-| Arrive via /OATF-001/ | Prerendered shell; hydrate; fetch YAML; render Detail tab |
-| Arrive via /view#yaml=<lz> | Decompress; render Detail tab |
-| Arrive via /edit#yaml=<lz> | Decompress; render Editor tab with timeline |
-| Arrive via /new | Show template selector overlay |
+| Arrive via /OATF-001/ | Prerendered read-only detail page |
+| Arrive via /editor | Show template selector |
+| Arrive via /editor?load=OATF-001 | Fetch YAML from library; load into editor |
+| Arrive via /editor#yaml=<lz> | Decompress; load into editor |
 
 ## 9. Visual Design
 
@@ -532,19 +543,19 @@ PR validation on library/** changes: checkout, setup-node, npm ci, npm run valid
 ## 12. Examples
 
 ### 12.1 Registry Browse with Filters
-scenarios.oatf.io/?protocol=mcp&severity=high&category=prompt_injection
+oatf.dev/?protocol=mcp&severity=high&category=prompt_injection
 
-### 12.2 Registry Scenario Detail
-scenarios.oatf.io/OATF-001/
+### 12.2 Registry Scenario Detail (read-only)
+oatf.dev/OATF-001/
 
 ### 12.3 Registry Scenario in Editor
-scenarios.oatf.io/OATF-001/?tab=editor
+oatf.dev/editor?load=OATF-001
 
-### 12.4 Custom Scenario Shared as Detail Page
-scenarios.oatf.io/view#yaml=NoIgDghgzgPg9gJwC4FMBOBLAdnAtjYAGhABskBjNYAc...
+### 12.4 Shared Scenario (editable)
+oatf.dev/editor#yaml=NoIgDghgzgPg9gJwC4FMBOBLAdnAtjYAGhABskBjNYAc...
 
-### 12.5 Phase Permalink
-scenarios.oatf.io/OATF-002/#phase-payload_delivery
+### 12.5 New Scenario from Template
+oatf.dev/editor
 
 ## 13. Open Questions
 

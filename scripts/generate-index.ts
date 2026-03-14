@@ -13,6 +13,7 @@ interface ScenarioIndex {
   protocols: string[];
   interaction_models: string[];
   classification_category: string;
+  impact: string[];
   has_indicators: boolean;
   phase_count: number;
   file: string;
@@ -88,6 +89,7 @@ function extractMetadata(doc: any, filePath: string): ScenarioIndex {
     protocols: [...protocols],
     interaction_models: [...interactionModels],
     classification_category: attack.classification?.category ?? 'uncategorized',
+    impact: Array.isArray(attack.impact) ? attack.impact : [],
     has_indicators: Array.isArray(attack.indicators) && attack.indicators.length > 0,
     phase_count: phaseCount,
     file: `${attack.id}.yaml`,

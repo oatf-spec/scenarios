@@ -42,6 +42,20 @@ attack:
       - tool-description
       - temporal
 
+  references:
+    - url: "https://invariantlabs.ai/blog/whatsapp-mcp-exploited"
+      title: "WhatsApp MCP Exploited: Exfiltrating Your Message History via MCP"
+      description: "Invariant Labs demonstration of sleeper rug pull combined with WhatsApp MCP takeover"
+    - url: "https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks"
+      title: "MCP Security Notification: Tool Poisoning Attacks"
+      description: "Invariant Labs disclosure covering rug pull attacks exploiting temporal trust gaps in MCP tool definitions"
+    - url: "https://github.com/invariantlabs-ai/mcp-scan"
+      title: "MCP-Scan: Security Scanner for MCP Servers"
+      description: "Invariant Labs tool implementing trust-on-first-use (TOFU) pinning via cryptographic hashes"
+    - url: "https://github.com/trailofbits/mcp-context-protector"
+      title: "MCP Context Protector"
+      description: "Trail of Bits security wrapper implementing server configuration pinning to detect rug pull attacks"
+
   execution:
     mode: mcp_server
     phases:

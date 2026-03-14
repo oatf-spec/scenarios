@@ -2,6 +2,8 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import yaml from 'js-yaml';
 import { extractModel, type TimelineModel } from '../../lib/oatf-model';
 import { generateSequence } from '../../lib/oatf-sequence';
+import { highlightYaml } from '../../lib/yaml-highlight';
+import ShareButton from '../ShareButton';
 import TimelineView from '../Timeline/TimelineView';
 
 const SEVERITY_STYLES: Record<string, string> = {
@@ -39,11 +41,15 @@ function protocolLabel(mode: string): string {
   return mode.toUpperCase();
 }
 
-function interactionLabel(mode: string): string {
-  if (mode === 'mcp_server' || mode === 'mcp_client') return 'agent-to-tool';
-  if (mode.startsWith('a2a_')) return 'agent-to-agent';
-  if (mode.startsWith('ag_ui_')) return 'user-to-agent';
-  return 'unknown';
+function formatLabel(s: string): string {
+  return s.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function formatDate(raw: unknown): string {
+  const d = raw instanceof Date ? raw : new Date(String(raw) + 'T00:00:00');
+  if (isNaN(d.getTime())) return String(raw);
+  return `${String(d.getUTCDate()).padStart(2, '0')} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 }
 
 function getProtocols(doc: any): string[] {
@@ -58,22 +64,15 @@ function getProtocols(doc: any): string[] {
   return [...protocols];
 }
 
-function getInteraction(doc: any): string {
-  const exec = doc?.attack?.execution;
-  if (!exec) return '';
-  if (exec.actors) {
-    const models = new Set(exec.actors.map((a: any) => interactionLabel(a.mode)));
-    return [...models].join(', ');
-  }
-  return interactionLabel(exec.mode);
-}
-
 interface Props {
   yamlText: string;
   scenarioId?: string;
+  editorUrl?: string;
+  shareTab?: 'editor' | 'detail';
+  onEdit?: () => void;
 }
 
-export default function DetailView({ yamlText, scenarioId }: Props) {
+export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab, onEdit }: Props) {
   const [mermaidSvg, setMermaidSvg] = useState<string>('');
   const [yamlExpanded, setYamlExpanded] = useState(false);
   const mermaidRef = useRef<HTMLDivElement>(null);
@@ -140,7 +139,6 @@ export default function DetailView({ yamlText, scenarioId }: Props) {
   const attack = doc.attack;
   const sevStyle = SEVERITY_STYLES[attack.severity?.level] ?? SEVERITY_STYLES.informational;
   const protocols = getProtocols(doc);
-  const interaction = getInteraction(doc);
   const mappings = attack.classification?.mappings ?? [];
   const indicators = attack.indicators ?? [];
   const yamlLines = yamlText.split('\n');
@@ -160,19 +158,22 @@ export default function DetailView({ yamlText, scenarioId }: Props) {
   }
 
   return (
-    <div className="max-w-[calc(960px+96px)] mx-auto px-6 md:px-12 py-8 pb-16">
+    <div className="max-w-[calc(960px+96px)] w-full mx-auto px-6 md:px-12 py-8 pb-16 overflow-x-hidden">
       {/* Header */}
       <section className="flex flex-col gap-3 pb-6">
         <div className="font-mono text-sm text-text-2">{attack.id}</div>
         <h1 className="font-serif text-[28px] leading-tight font-semibold tracking-tight m-0">
           {attack.name}
         </h1>
-        <div className="flex items-center justify-between gap-4 flex-wrap">
+        {/* Badge bar + actions */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-2 flex-wrap">
-            <span
-              className={`inline-flex items-center justify-center min-w-[58px] h-[22px] px-2 rounded-full text-[11px] font-bold tracking-wide uppercase ${sevStyle}`}
-            >
-              {attack.severity?.level}
+            {/* Severity + confidence compound pill */}
+            <span className={`inline-flex items-center h-[22px] rounded-full overflow-hidden text-[11px] font-bold tracking-wide uppercase ${sevStyle}`}>
+              <span className="px-2 h-full flex items-center">{attack.severity?.level}</span>
+              {attack.severity?.confidence != null && (
+                <span className="px-1.5 h-full flex items-center bg-black/20 text-white/70 font-semibold">{attack.severity.confidence}%</span>
+              )}
             </span>
             {protocols.map((p) => (
               <span
@@ -182,12 +183,10 @@ export default function DetailView({ yamlText, scenarioId }: Props) {
                 {p}
               </span>
             ))}
-            <span className="inline-flex items-center h-[22px] px-2 rounded-full text-[11px] font-semibold text-text bg-[#2a2d37] lowercase">
-              {interaction}
-            </span>
-            {attack.status && (
-              <span className="inline-flex items-center h-[22px] px-2 rounded-full text-[11px] font-semibold text-text bg-[#2a2d37] lowercase">
-                {attack.status}
+            {(attack.status || attack.version) && (
+              <span className="inline-flex items-center h-[22px] rounded-full overflow-hidden text-[11px] font-semibold bg-[#2a2d37]">
+                {attack.status && <span className="px-2 h-full flex items-center text-text">{attack.status}</span>}
+                {attack.version && <span className={`px-1.5 h-full flex items-center text-text-2${attack.status ? ' bg-black/20' : ''}`}>v{attack.version}</span>}
               </span>
             )}
           </div>
@@ -198,9 +197,24 @@ export default function DetailView({ yamlText, scenarioId }: Props) {
             >
               Download
             </button>
-            {scenarioId && (
+            {shareTab && (
+              <ShareButton
+                yamlText={yamlText}
+                tab={shareTab}
+                className="h-8 px-3 rounded-[6px] border border-border bg-transparent text-text text-[13px] font-semibold cursor-pointer hover:border-border-hover"
+              />
+            )}
+            {onEdit && (
+              <button
+                onClick={onEdit}
+                className="h-8 px-3 rounded-[6px] border border-accent bg-transparent text-text text-[13px] font-semibold inline-flex items-center cursor-pointer"
+              >
+                Edit
+              </button>
+            )}
+            {editorUrl && (
               <a
-                href={`/${scenarioId}/?tab=editor`}
+                href={editorUrl}
                 className="h-8 px-3 rounded-[6px] border border-accent text-text text-[13px] font-semibold inline-flex items-center cursor-pointer"
               >
                 Open in Editor
@@ -208,6 +222,43 @@ export default function DetailView({ yamlText, scenarioId }: Props) {
             )}
           </div>
         </div>
+        {/* Metadata key-value lines */}
+        {((attack.impact ?? []).length > 0 || (attack.classification?.tags ?? []).length > 0 || attack.created || attack.author) && (
+          <div className="flex flex-col gap-2 mt-1">
+            {(attack.impact ?? []).length > 0 && (
+              <div className="flex items-baseline gap-3">
+                <span className="text-[11px] text-text-2 font-semibold uppercase tracking-wide shrink-0 w-[52px]">Impact</span>
+                <span className="text-[13px] text-text">{attack.impact.map(formatLabel).join(' · ')}</span>
+              </div>
+            )}
+            {(attack.classification?.tags ?? []).length > 0 && (
+              <div className="flex items-center gap-3">
+                <span className="text-[11px] text-text-2 font-semibold uppercase tracking-wide shrink-0 w-[52px]">Tags</span>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {attack.classification.tags.map((tag: string) => (
+                    <span
+                      key={tag}
+                      className="inline-flex items-center text-[11px] text-text-2 bg-surface-2 border border-border rounded-full h-[22px] px-2"
+                    >
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {(attack.created || attack.modified || attack.author) && (() => {
+              const isUpdated = attack.modified && String(attack.modified) !== String(attack.created);
+              const label = isUpdated ? 'Updated' : 'Created';
+              const date = isUpdated ? attack.modified : attack.created;
+              return (
+                <div className="flex items-baseline gap-3">
+                  <span className="text-[11px] text-text-2 font-semibold uppercase tracking-wide shrink-0 w-[52px]">{label}</span>
+                  <span className="text-[13px] text-text-2">{[date && formatDate(date), attack.author && `by ${attack.author}`].filter(Boolean).join(' ')}</span>
+                </div>
+              );
+            })()}
+          </div>
+        )}
       </section>
 
       {/* Description */}
@@ -215,10 +266,36 @@ export default function DetailView({ yamlText, scenarioId }: Props) {
         <div className="text-[11px] text-text-2 uppercase tracking-[0.1em] font-bold">
           Description
         </div>
-        <p className="text-[15px] text-text leading-relaxed max-w-[74ch] m-0 whitespace-pre-line">
-          {attack.description?.trim()}
+        <p className="text-[15px] text-text leading-relaxed max-w-[74ch] m-0">
+          {attack.description?.trim().replace(/\n(?!\n)/g, ' ')}
         </p>
       </section>
+
+      {/* References */}
+      {(attack.references ?? []).length > 0 && (
+        <section className="mt-12 flex flex-col gap-4">
+          <div className="text-[11px] text-text-2 uppercase tracking-[0.1em] font-bold">
+            References
+          </div>
+          <div className="flex flex-col gap-3">
+            {attack.references.map((ref: { title?: string; url: string; description?: string }, i: number) => (
+              <div key={i} className="flex flex-col gap-0.5">
+                <a
+                  href={ref.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-text hover:text-text-2 underline decoration-border hover:decoration-text-2 text-[14px]"
+                >
+                  {ref.title || ref.url} ↗
+                </a>
+                {ref.description && (
+                  <p className="text-[13px] text-text-2 m-0">{ref.description}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Framework Mappings */}
       {mappings.length > 0 && (
@@ -315,6 +392,9 @@ export default function DetailView({ yamlText, scenarioId }: Props) {
         <section className="mt-12 flex flex-col gap-4">
           <div className="text-[11px] text-text-2 uppercase tracking-[0.1em] font-bold">
             Indicators
+            {attack.correlation?.logic && (
+              <span className="text-text-2 normal-case tracking-normal font-normal"> · match {attack.correlation.logic}</span>
+            )}
           </div>
           <div className="flex flex-col gap-2">
             {indicators.map((ind: any) => (
@@ -333,38 +413,25 @@ export default function DetailView({ yamlText, scenarioId }: Props) {
             style={{ borderColor: '#171a22', background: '#0b0d13' }}
           >
             <span>scenario.yaml</span>
-            <span>
-              {yamlExpanded
-                ? `${yamlLines.length} lines`
-                : `${Math.min(20, yamlLines.length)} of ${yamlLines.length} lines`}
-            </span>
+            <div className="flex items-center gap-3">
+              <span>
+                {yamlExpanded
+                  ? `${yamlLines.length} lines`
+                  : `${Math.min(20, yamlLines.length)} of ${yamlLines.length} lines`}
+              </span>
+              <CopyButton text={yamlText} />
+            </div>
           </div>
           <pre className="m-0 p-4 overflow-auto font-mono text-xs leading-relaxed text-[#d4d4d8]">
-            <code>{previewLines.join('\n')}</code>
+            <code>{highlightYaml(previewLines.join('\n'))}</code>
           </pre>
           {yamlLines.length > 20 && (
             <button
               onClick={() => setYamlExpanded(!yamlExpanded)}
-              className="w-full py-2 text-xs text-text-2 hover:text-text border-t cursor-pointer bg-transparent border-border"
+              className="w-full py-2 text-xs text-text-2 hover:text-text border-t cursor-pointer bg-[#13151d] border-border"
             >
-              {yamlExpanded ? 'Show less' : `Show all ${yamlLines.length} lines…`}
+              {yamlExpanded ? '▴ Show less' : `▾ Show all ${yamlLines.length} lines…`}
             </button>
-          )}
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={handleDownload}
-            className="h-8 px-3 rounded-[6px] border border-border bg-transparent text-text text-[13px] font-semibold cursor-pointer"
-          >
-            Download .yaml
-          </button>
-          {scenarioId && (
-            <a
-              href={`/${scenarioId}/?tab=editor`}
-              className="h-8 px-3 rounded-[6px] bg-accent text-white text-[13px] font-semibold inline-flex items-center cursor-pointer border border-accent"
-            >
-              Open in Editor
-            </a>
           )}
         </div>
       </section>
@@ -383,17 +450,17 @@ function IndicatorRow({ indicator }: { indicator: any }) {
       className="border border-border bg-surface rounded-[6px] px-3.5 py-3 cursor-pointer"
       onClick={() => setExpanded(!expanded)}
     >
-      <div className="grid items-center gap-3 text-[13px]" style={{ gridTemplateColumns: 'auto auto 1fr auto' }}>
-        <span className="font-mono text-text-2">{indicator.id}</span>
+      <div className="flex items-center gap-3 text-[13px] min-w-0">
+        <span className="font-mono text-text-2 shrink-0">{indicator.id}</span>
         {indicator.protocol && (
           <span
-            className={`inline-flex items-center h-[22px] px-2 rounded-full text-[11px] font-bold text-white ${protocolColor}`}
+            className={`inline-flex items-center h-[22px] px-2 rounded-full text-[11px] font-bold text-white shrink-0 ${protocolColor}`}
           >
             {protocolLabel(indicator.protocol)}
           </span>
         )}
-        <span className="text-text-2 truncate">{indicator.description}</span>
-        <span className="text-text-2 text-base">{expanded ? '▾' : '▸'}</span>
+        <span className="text-text-2 truncate flex-1 min-w-0">{indicator.description}</span>
+        <span className="text-text-2 text-base shrink-0">{expanded ? '▾' : '▸'}</span>
       </div>
       {expanded && (
         <div className="mt-3 pt-3 border-t border-border">
@@ -432,5 +499,26 @@ function IndicatorRow({ indicator }: { indicator: any }) {
         </div>
       )}
     </div>
+  );
+}
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+
+  function handleCopy() {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }).catch(() => {});
+  }
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="text-text-2 hover:text-text cursor-pointer bg-transparent border-0 text-xs"
+      title="Copy YAML"
+    >
+      {copied ? 'Copied' : 'Copy'}
+    </button>
   );
 }
