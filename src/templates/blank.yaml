@@ -1,0 +1,21 @@
+oatf: "0.1"
+
+attack:
+  id: OATF-NEW
+  name: "Untitled Scenario"
+  version: 1
+  status: draft
+  description: ""
+
+  severity:
+    level: medium
+    confidence: 50
+
+  classification:
+    category: uncategorized
+
+  execution:
+    mode: mcp_server
+    state: {}
+
+  indicators: []
