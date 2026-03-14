@@ -41,11 +41,15 @@ function protocolLabel(mode: string): string {
   return mode.toUpperCase();
 }
 
-function interactionLabel(mode: string): string {
-  if (mode === 'mcp_server' || mode === 'mcp_client') return 'agent-to-tool';
-  if (mode.startsWith('a2a_')) return 'agent-to-agent';
-  if (mode.startsWith('ag_ui_')) return 'user-to-agent';
-  return 'unknown';
+function formatLabel(s: string): string {
+  return s.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function formatDate(raw: unknown): string {
+  const d = raw instanceof Date ? raw : new Date(String(raw) + 'T00:00:00');
+  if (isNaN(d.getTime())) return String(raw);
+  return `${String(d.getUTCDate()).padStart(2, '0')} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 }
 
 function getProtocols(doc: any): string[] {
@@ -58,16 +62,6 @@ function getProtocols(doc: any): string[] {
     protocols.add(protocolLabel(exec.mode));
   }
   return [...protocols];
-}
-
-function getInteraction(doc: any): string {
-  const exec = doc?.attack?.execution;
-  if (!exec) return '';
-  if (exec.actors) {
-    const models = new Set(exec.actors.map((a: any) => interactionLabel(a.mode)));
-    return [...models].join(', ');
-  }
-  return interactionLabel(exec.mode);
 }
 
 interface Props {
@@ -145,7 +139,6 @@ export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab, 
   const attack = doc.attack;
   const sevStyle = SEVERITY_STYLES[attack.severity?.level] ?? SEVERITY_STYLES.informational;
   const protocols = getProtocols(doc);
-  const interaction = getInteraction(doc);
   const mappings = attack.classification?.mappings ?? [];
   const indicators = attack.indicators ?? [];
   const yamlLines = yamlText.split('\n');
@@ -172,12 +165,15 @@ export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab, 
         <h1 className="font-serif text-[28px] leading-tight font-semibold tracking-tight m-0">
           {attack.name}
         </h1>
+        {/* Badge bar + actions */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-2 flex-wrap">
-            <span
-              className={`inline-flex items-center justify-center min-w-[58px] h-[22px] px-2 rounded-full text-[11px] font-bold tracking-wide uppercase ${sevStyle}`}
-            >
-              {attack.severity?.level}
+            {/* Severity + confidence compound pill */}
+            <span className={`inline-flex items-center h-[22px] rounded-full overflow-hidden text-[11px] font-bold tracking-wide uppercase ${sevStyle}`}>
+              <span className="px-2 h-full flex items-center">{attack.severity?.level}</span>
+              {attack.severity?.confidence != null && (
+                <span className="px-1.5 h-full flex items-center bg-black/20 text-white/70 font-semibold">{attack.severity.confidence}%</span>
+              )}
             </span>
             {protocols.map((p) => (
               <span
@@ -187,12 +183,10 @@ export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab, 
                 {p}
               </span>
             ))}
-            <span className="inline-flex items-center h-[22px] px-2 rounded-full text-[11px] font-semibold text-text bg-[#2a2d37] lowercase">
-              {interaction}
-            </span>
-            {attack.status && (
-              <span className="inline-flex items-center h-[22px] px-2 rounded-full text-[11px] font-semibold text-text bg-[#2a2d37] lowercase">
-                {attack.status}
+            {(attack.status || attack.version) && (
+              <span className="inline-flex items-center h-[22px] rounded-full overflow-hidden text-[11px] font-semibold bg-[#2a2d37]">
+                {attack.status && <span className="px-2 h-full flex items-center text-text">{attack.status}</span>}
+                {attack.version && <span className={`px-1.5 h-full flex items-center text-text-2${attack.status ? ' bg-black/20' : ''}`}>v{attack.version}</span>}
               </span>
             )}
           </div>
@@ -228,6 +222,43 @@ export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab, 
             )}
           </div>
         </div>
+        {/* Metadata key-value lines */}
+        {((attack.impact ?? []).length > 0 || (attack.classification?.tags ?? []).length > 0 || attack.created || attack.author) && (
+          <div className="flex flex-col gap-2 mt-1">
+            {(attack.impact ?? []).length > 0 && (
+              <div className="flex items-baseline gap-3">
+                <span className="text-[11px] text-text-2 font-semibold uppercase tracking-wide shrink-0 w-[52px]">Impact</span>
+                <span className="text-[13px] text-text">{attack.impact.map(formatLabel).join(' · ')}</span>
+              </div>
+            )}
+            {(attack.classification?.tags ?? []).length > 0 && (
+              <div className="flex items-center gap-3">
+                <span className="text-[11px] text-text-2 font-semibold uppercase tracking-wide shrink-0 w-[52px]">Tags</span>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {attack.classification.tags.map((tag: string) => (
+                    <span
+                      key={tag}
+                      className="inline-flex items-center text-[11px] text-text-2 bg-surface-2 border border-border rounded-full h-[22px] px-2"
+                    >
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {(attack.created || attack.modified || attack.author) && (() => {
+              const isUpdated = attack.modified && String(attack.modified) !== String(attack.created);
+              const label = isUpdated ? 'Updated' : 'Created';
+              const date = isUpdated ? attack.modified : attack.created;
+              return (
+                <div className="flex items-baseline gap-3">
+                  <span className="text-[11px] text-text-2 font-semibold uppercase tracking-wide shrink-0 w-[52px]">{label}</span>
+                  <span className="text-[13px] text-text-2">{[date && formatDate(date), attack.author && `by ${attack.author}`].filter(Boolean).join(' ')}</span>
+                </div>
+              );
+            })()}
+          </div>
+        )}
       </section>
 
       {/* Description */}
@@ -239,6 +270,32 @@ export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab, 
           {attack.description?.trim().replace(/\n(?!\n)/g, ' ')}
         </p>
       </section>
+
+      {/* References */}
+      {(attack.references ?? []).length > 0 && (
+        <section className="mt-12 flex flex-col gap-4">
+          <div className="text-[11px] text-text-2 uppercase tracking-[0.1em] font-bold">
+            References
+          </div>
+          <div className="flex flex-col gap-3">
+            {attack.references.map((ref: { title?: string; url: string; description?: string }, i: number) => (
+              <div key={i} className="flex flex-col gap-0.5">
+                <a
+                  href={ref.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-text hover:text-text-2 underline decoration-border hover:decoration-text-2 text-[14px]"
+                >
+                  {ref.title || ref.url} ↗
+                </a>
+                {ref.description && (
+                  <p className="text-[13px] text-text-2 m-0">{ref.description}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Framework Mappings */}
       {mappings.length > 0 && (
@@ -335,6 +392,9 @@ export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab, 
         <section className="mt-12 flex flex-col gap-4">
           <div className="text-[11px] text-text-2 uppercase tracking-[0.1em] font-bold">
             Indicators
+            {attack.correlation?.logic && (
+              <span className="text-text-2 normal-case tracking-normal font-normal"> · match {attack.correlation.logic}</span>
+            )}
           </div>
           <div className="flex flex-col gap-2">
             {indicators.map((ind: any) => (
