@@ -1,5 +1,5 @@
 ---
-import ScenarioPage from '../components/ScenarioPage';
+import DetailView from '../components/DetailView/DetailView';
 import Analytics from '../components/Analytics.astro';
 import '../styles/global.css';
 import fs from 'node:fs';
@@ -77,7 +77,7 @@ const canonicalUrl = `https://oatf.dev/${id}/`;
           </a>
           <nav class="hidden md:flex items-center gap-6">
             <a class="text-sm text-text-2 hover:text-text" href="/">Registry</a>
-            <a class="text-sm text-text-2 hover:text-text" href="/new">Editor</a>
+            <a class="text-sm text-text-2 hover:text-text" href="/editor">Editor</a>
             <a class="text-sm text-text-2 hover:text-text" href="https://oatf.io" target="_blank" rel="noopener">About</a>
           </nav>
         </div>
@@ -92,7 +92,7 @@ const canonicalUrl = `https://oatf.dev/${id}/`;
       </header>
 
       <main>
-        <ScenarioPage client:load initialYaml={yamlText} scenarioId={id} defaultTab="detail" />
+        <DetailView client:load yamlText={yamlText} scenarioId={id} editorUrl={`/editor?load=${id}`} />
       </main>
     </div>
   </body>

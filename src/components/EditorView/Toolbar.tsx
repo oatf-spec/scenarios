@@ -101,7 +101,7 @@ function ShareButton({ yamlText }: { yamlText: string }) {
   function handleShare() {
     const compressed = compressYaml(yamlText);
     const base = typeof window !== 'undefined' ? window.location.origin : 'https://oatf.dev';
-    const url = `${base}/view#yaml=${compressed}`;
+    const url = `${base}/editor#yaml=${compressed}`;
 
     if (url.length > 15000) {
       showStatus('URL too long — use Download instead');

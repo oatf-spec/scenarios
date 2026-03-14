@@ -72,9 +72,10 @@ function getInteraction(doc: any): string {
 interface Props {
   yamlText: string;
   scenarioId?: string;
+  editorUrl?: string;
 }
 
-export default function DetailView({ yamlText, scenarioId }: Props) {
+export default function DetailView({ yamlText, scenarioId, editorUrl }: Props) {
   const [mermaidSvg, setMermaidSvg] = useState<string>('');
   const [yamlExpanded, setYamlExpanded] = useState(false);
   const mermaidRef = useRef<HTMLDivElement>(null);
@@ -199,9 +200,9 @@ export default function DetailView({ yamlText, scenarioId }: Props) {
             >
               Download
             </button>
-            {scenarioId && (
+            {editorUrl && (
               <a
-                href={`/${scenarioId}/?tab=editor`}
+                href={editorUrl}
                 className="h-8 px-3 rounded-[6px] border border-accent text-text text-[13px] font-semibold inline-flex items-center cursor-pointer"
               >
                 Open in Editor
