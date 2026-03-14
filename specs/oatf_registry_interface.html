@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OATF Registry Interface</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface-2: #13151d;
+      --border: #2a2d37;
+      --border-hover: #3a3d47;
+      --text: #e4e4e7;
+      --text-2: #a1a1aa;
+      --accent: #b02a2a;
+      --mcp: #3b82f6;
+      --a2a: #22c55e;
+      --agui: #a855f7;
+      --critical: #ef4444;
+      --high: #f97316;
+      --medium: #eab308;
+      --low: #3b82f6;
+      --info: #6b7280;
+      --radius: 6px;
+      --space-1: 8px;
+      --space-2: 16px;
+      --space-3: 24px;
+      --space-4: 32px;
+      --space-5: 48px;
+      --nav-h: 64px;
+      --frame-w: 1440px;
+      --content-w: 960px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: #090b10; color: var(--text); }
+    body {
+      font-family: "Source Sans 3", Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.4;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button, select { font: inherit; }
+
+    .stage {
+      width: 100%;
+      padding: 32px 20px 64px;
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+      align-items: center;
+      background:
+        linear-gradient(to bottom, #0a0d12, #090b10);
+    }
+
+    .frame-wrap {
+      width: min(calc(var(--frame-w) + 48px), 100%);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .frame-label {
+      color: var(--text-2);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding-left: 4px;
+    }
+
+    .page {
+      width: 100%;
+      max-width: calc(var(--frame-w) + 48px);
+      padding: 24px;
+      background: #0a0c11;
+      border: 1px solid #1a1d27;
+      border-radius: var(--radius);
+      overflow: auto;
+    }
+
+    .canvas {
+      width: var(--frame-w);
+      min-height: 900px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .nav {
+      height: var(--nav-h);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: rgba(15,17,23,0.96);
+    }
+
+    .nav-left, .nav-right, .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .nav-links a, .nav-right a {
+      color: var(--text-2);
+      font-size: 14px;
+    }
+
+    .nav-links a.active { color: var(--text); }
+    .nav-right a:hover, .nav-links a:hover { color: var(--text); }
+
+    .github-icon {
+      width: 16px;
+      height: 16px;
+      display: inline-block;
+    }
+
+    .filter-bar {
+      width: 100%;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: auto auto auto 1fr auto;
+      gap: 16px;
+      align-items: center;
+      background: #11141c;
+    }
+
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 28px;
+      padding: 0 10px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: #20232d;
+      color: var(--text-2);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+    }
+
+    .chip.active { color: #fff; border-color: transparent; }
+    .chip.mcp.active { background: var(--mcp); }
+    .chip.a2a.active { background: var(--a2a); }
+    .chip.agui.active { background: var(--agui); }
+
+    .filter-select {
+      height: 32px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      padding: 0 10px;
+      font-size: 13px;
+      min-width: 164px;
+      appearance: none;
+      background-image:
+        linear-gradient(45deg, transparent 50%, var(--text-2) 50%),
+        linear-gradient(135deg, var(--text-2) 50%, transparent 50%);
+      background-position:
+        calc(100% - 16px) 13px,
+        calc(100% - 11px) 13px;
+      background-size: 5px 5px, 5px 5px;
+      background-repeat: no-repeat;
+    }
+
+    .result-count {
+      justify-self: end;
+      font-size: 13px;
+      color: var(--text-2);
+      white-space: nowrap;
+    }
+
+    .cards-grid {
+      padding: 20px 24px 32px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .scenario-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      min-height: 148px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: border-color 0.15s ease;
+    }
+
+    .scenario-card:hover { border-color: var(--border-hover); }
+
+    .card-top,
+    .card-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .card-bottom {
+      margin-top: auto;
+      align-items: end;
+    }
+
+    .mono {
+      font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+      font-size: 12px;
+      color: var(--text-2);
+    }
+
+    .severity {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 58px;
+      height: 22px;
+      padding: 0 8px;
+      border-radius: 999px;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+    .sev-critical { background: var(--critical); }
+    .sev-high { background: var(--high); }
+    .sev-medium { background: var(--medium); color: #111; }
+    .sev-low { background: var(--low); }
+    .sev-info { background: var(--info); }
+
+    .title {
+      font-family: "Source Serif 4", Georgia, Cambria, "Times New Roman", serif;
+      font-size: 16px;
+      line-height: 1.25;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .desc {
+      font-size: 13px;
+      color: var(--text-2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tag-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .protocol-pill,
+    .status-pill,
+    .outline-pill {
+      display: inline-flex;
+      align-items: center;
+      height: 22px;
+      padding: 0 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: #fff;
+    }
+    .pill-mcp { background: var(--mcp); }
+    .pill-a2a { background: var(--a2a); }
+    .pill-agui { background: var(--agui); }
+    .status-pill {
+      color: var(--text);
+      background: #2a2d37;
+      font-weight: 600;
+      text-transform: lowercase;
+    }
+
+    .interaction-label {
+      font-size: 12px;
+      color: var(--text-2);
+      text-transform: lowercase;
+      white-space: nowrap;
+    }
+
+    .content-center {
+      max-width: calc(var(--content-w) + 96px);
+      margin: 0 auto;
+      padding: 32px 48px 64px;
+    }
+
+    .detail-header {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid transparent;
+    }
+
+    .detail-id { font-size: 14px; }
+
+    .detail-title {
+      font-family: "Source Serif 4", Georgia, serif;
+      font-size: 28px;
+      line-height: 1.18;
+      margin: 0;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .meta-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn, .btn-outline {
+      height: 32px;
+      padding: 0 12px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-outline.accent {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    .btn-filled {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .section {
+      margin-top: 48px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .section-label {
+      font-size: 11px;
+      color: var(--text-2);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-weight: 700;
+    }
+
+    .body-copy {
+      font-size: 15px;
+      color: var(--text);
+      line-height: 1.6;
+      max-width: 74ch;
+      margin: 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .mapping-table th,
+    .mapping-table td {
+      text-align: left;
+      padding: 12px 8px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+
+    .mapping-table th {
+      color: var(--text-2);
+      font-weight: 600;
+      padding-top: 0;
+    }
+
+    .mapping-table td:first-child,
+    .mapping-table th:first-child { padding-left: 0; }
+    .mapping-table td:last-child,
+    .mapping-table th:last-child { padding-right: 0; }
+
+    .link-accent {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 16px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0;
+    }
+
+    .tab {
+      padding: 0 0 10px;
+      font-size: 14px;
+      color: var(--text-2);
+      border-bottom: 2px solid transparent;
+    }
+
+    .tab.active {
+      color: var(--text);
+      border-bottom-color: var(--text);
+    }
+
+    .diagram-box {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      min-height: 320px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .indicator-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .indicator-row {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      display: grid;
+      grid-template-columns: auto auto auto 1fr auto;
+      gap: 12px;
+      align-items: center;
+      font-size: 13px;
+    }
+
+    .surface-label {
+      display: inline-flex;
+      align-items: center;
+      height: 22px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0 8px;
+      color: var(--text-2);
+      background: #151821;
+    }
+
+    .indicator-row .desc-inline {
+      color: var(--text-2);
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .chevron {
+      color: var(--text-2);
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .code-wrap {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #0d0f14;
+    }
+
+    .code-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-bottom: 1px solid #171a22;
+      color: var(--text-2);
+      font-size: 12px;
+      background: #0b0d13;
+    }
+
+    pre {
+      margin: 0;
+      padding: 16px;
+      overflow: auto;
+      font-family: "JetBrains Mono", Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #d4d4d8;
+    }
+
+    .yaml-key { color: #7dd3fc; }
+    .yaml-value { color: #e4e4e7; }
+    .yaml-string { color: #86efac; }
+    .yaml-num { color: #fca5a5; }
+    .yaml-comment { color: #6b7280; }
+
+    .action-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .heatmap-wrap {
+      padding: 24px;
+    }
+
+    .heatmap-title-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .heatmap-title {
+      font-family: "Source Serif 4", Georgia, serif;
+      font-size: 26px;
+      margin: 0;
+    }
+
+    .heatmap-sub {
+      color: var(--text-2);
+      font-size: 13px;
+    }
+
+    .matrix {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 8px;
+    }
+
+    .matrix thead th {
+      padding: 0 12px 8px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      text-align: center;
+    }
+
+    .matrix .rowhead {
+      width: 180px;
+      color: var(--text);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 12px;
+      padding: 10px 12px 10px 0;
+      white-space: nowrap;
+    }
+
+    .matrix td.cell {
+      height: 44px;
+      text-align: center;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text);
+      min-width: 110px;
+      background: #11141c;
+    }
+
+    .matrix .empty { background: #10131a; color: #5f6470; }
+    .fill-mcp-1 { background: rgba(59,130,246,0.12) !important; border-color: rgba(59,130,246,0.28) !important; }
+    .fill-mcp-2 { background: rgba(59,130,246,0.18) !important; border-color: rgba(59,130,246,0.38) !important; }
+    .fill-a2a-1 { background: rgba(34,197,94,0.12) !important; border-color: rgba(34,197,94,0.28) !important; }
+    .fill-a2a-2 { background: rgba(34,197,94,0.18) !important; border-color: rgba(34,197,94,0.38) !important; }
+    .fill-agui-1 { background: rgba(168,85,247,0.12) !important; border-color: rgba(168,85,247,0.28) !important; }
+    .fill-agui-2 { background: rgba(168,85,247,0.18) !important; border-color: rgba(168,85,247,0.38) !important; }
+
+    .mcp-head { color: var(--mcp); }
+    .a2a-head { color: var(--a2a); }
+    .agui-head { color: var(--agui); }
+
+    .mobile-shell {
+      width: 375px;
+      min-height: 812px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+    }
+
+    .mobile-nav {
+      height: 56px;
+      padding: 0 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .mobile-filter-row {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      background: #11141c;
+    }
+
+    .mobile-cards {
+      padding: 16px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .filters-btn {
+      height: 32px;
+      padding: 0 12px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .muted { color: var(--text-2); }
+    .small { font-size: 12px; }
+
+    .divider { height: 1px; background: var(--border); }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="frame-wrap">
+      <div class="frame-label">Desktop • 1440px • Page 1 / Registry index</div>
+      <div class="page">
+        <div class="canvas">
+          <header class="nav">
+            <div class="nav-left">
+              <a class="brand" href="#">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M2 13.5L7 2.5" stroke="#E4E4E7" stroke-width="1.75" stroke-linecap="round"/>
+                  <path d="M7.5 15.5L12.5 4.5" stroke="#E4E4E7" stroke-width="1.75" stroke-linecap="round"/>
+                  <path d="M13 15.5L16 8.8" stroke="#E4E4E7" stroke-width="1.75" stroke-linecap="round"/>
+                </svg>
+                <span>OATF Registry</span>
+              </a>
+              <nav class="nav-links">
+                <a class="active" href="#">Registry</a>
+                <a href="#">Coverage</a>
+                <a href="#">About</a>
+              </nav>
+            </div>
+            <div class="nav-right">
+              <a href="#">oatf.io</a>
+              <a href="#" aria-label="GitHub">
+                <svg class="github-icon" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M8 0.2C3.58 0.2 0 3.78 0 8.2C0 11.74 2.29 14.74 5.47 15.8C5.87 15.87 6.02 15.63 6.02 15.42C6.02 15.24 6.01 14.66 6.01 13.89C3.78 14.37 3.31 12.95 3.31 12.95C2.95 12.03 2.43 11.79 2.43 11.79C1.71 11.3 2.49 11.31 2.49 11.31C3.29 11.36 3.71 12.13 3.71 12.13C4.42 13.34 5.57 12.99 6.03 12.79C6.1 12.28 6.31 11.93 6.54 11.73C4.76 11.53 2.89 10.84 2.89 7.75C2.89 6.87 3.2 6.15 3.72 5.58C3.64 5.38 3.37 4.56 3.8 3.46C3.8 3.46 4.47 3.25 6 4.28C6.64 4.1 7.32 4.01 8 4.01C8.68 4.01 9.36 4.1 10 4.28C11.53 3.25 12.2 3.46 12.2 3.46C12.63 4.56 12.36 5.38 12.28 5.58C12.8 6.15 13.11 6.87 13.11 7.75C13.11 10.85 11.24 11.53 9.45 11.73C9.74 11.98 10 12.49 10 13.27C10 14.38 9.99 15.19 9.99 15.42C9.99 15.63 10.13 15.88 10.54 15.8C13.71 14.74 16 11.74 16 8.2C16 3.78 12.42 0.2 8 0.2Z"/>
+                </svg>
+              </a>
+            </div>
+          </header>
+
+          <section class="filter-bar">
+            <div class="filter-group">
+              <div class="chip mcp active">MCP</div>
+              <div class="chip a2a active">A2A</div>
+              <div class="chip agui">AG-UI</div>
+            </div>
+            <div class="filter-group">
+              <select class="filter-select">
+                <option>All severities</option>
+                <option>Critical</option>
+                <option>High</option>
+                <option>Medium</option>
+                <option>Low</option>
+                <option>Informational</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <select class="filter-select">
+                <option>All categories</option>
+                <option>Prompt injection</option>
+                <option>State confusion</option>
+                <option>Capability escalation</option>
+                <option>Trust boundary</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <div class="chip active">User-to-Agent</div>
+              <div class="chip">Agent-to-Agent</div>
+              <div class="chip active">Agent-to-Tool</div>
+            </div>
+            <div class="result-count">Showing 23 of 47 scenarios</div>
+          </section>
+
+          <section class="cards-grid">
+            <article class="scenario-card">
+              <div class="card-top">
+                <span class="mono">OATF-001</span>
+                <span class="severity sev-high">High</span>
+              </div>
+              <div class="title">Indirect prompt injection via tool result</div>
+              <div class="desc">Untrusted tool output overrides agent policy and changes subsequent action selection.</div>
+              <div class="card-bottom">
+                <div class="tag-row">
+                  <span class="protocol-pill pill-mcp">MCP</span>
+                  <span class="protocol-pill pill-a2a">A2A</span>
+                </div>
+                <span class="interaction-label">agent-to-tool</span>
+              </div>
+            </article>
+
+            <article class="scenario-card">
+              <div class="card-top">
+                <span class="mono">OATF-002</span>
+                <span class="severity sev-critical">Critical</span>
+              </div>
+              <div class="title">Delegation loop causes privilege amplification</div>
+              <div class="desc">Recursive handoff chain causes execution under a higher-trust agent identity.</div>
+              <div class="card-bottom">
+                <div class="tag-row">
+                  <span class="protocol-pill pill-a2a">A2A</span>
+                </div>
+                <span class="interaction-label">agent-to-agent</span>
+              </div>
+            </article>
+
+            <article class="scenario-card">
+              <div class="card-top">
+                <span class="mono">OATF-003</span>
+                <span class="severity sev-medium">Medium</span>
+              </div>
+              <div class="title">User-supplied memory seeding</div>
+              <div class="desc">Persistent context captures adversarial instructions that survive session boundaries.</div>
+              <div class="card-bottom">
+                <div class="tag-row">
+                  <span class="protocol-pill pill-mcp">MCP</span>
+                  <span class="protocol-pill pill-agui">AG-UI</span>
+                </div>
+                <span class="interaction-label">user-to-agent</span>
+              </div>
+            </article>
+
+            <article class="scenario-card">
+              <div class="card-top">
+                <span class="mono">OATF-004</span>
+                <span class="severity sev-high">High</span>
+              </div>
+              <div class="title">Schema downgrading to bypass validation</div>
+              <div class="desc">Negotiated capability schema removes guard fields before a dangerous tool invocation.</div>
+              <div class="card-bottom">
+                <div class="tag-row">
+                  <span class="protocol-pill pill-mcp">MCP</span>
+                </div>
+                <span class="interaction-label">agent-to-tool</span>
+              </div>
+            </article>
+
+            <article class="scenario-card">
+              <div class="card-top">
+                <span class="mono">OATF-005</span>
+                <span class="severity sev-low">Low</span>
+              </div>
+              <div class="title">UI channel spoofing through agent annotation</div>
+              <div class="desc">Rendered metadata mimics trusted system messaging and misleads operator review.</div>
+              <div class="card-bottom">
+                <div class="tag-row">
+                  <span class="protocol-pill pill-agui">AG-UI</span>
+                </div>
+                <span class="interaction-label">user-to-agent</span>
+              </div>
+            </article>
+
+            <article class="scenario-card">
+              <div class="card-top">
+                <span class="mono">OATF-006</span>
+                <span class="severity sev-info">Info</span>
+              </div>
+              <div class="title">Observable planning metadata leakage</div>
+              <div class="desc">Protocol events expose internal step labels that reveal tool inventory or hidden state.</div>
+              <div class="card-bottom">
+                <div class="tag-row">
+                  <span class="protocol-pill pill-a2a">A2A</span>
+                  <span class="protocol-pill pill-agui">AG-UI</span>
+                </div>
+                <span class="interaction-label">agent-to-agent</span>
+              </div>
+            </article>
+
+            <article class="scenario-card">
+              <div class="card-top">
+                <span class="mono">OATF-007</span>
+                <span class="severity sev-critical">Critical</span>
+              </div>
+              <div class="title">Cross-tenant tool token replay</div>
+              <div class="desc">Session material returned by a broker is replayed against another tenant-scoped tool surface.</div>
+              <div class="card-bottom">
+                <div class="tag-row">
+                  <span class="protocol-pill pill-mcp">MCP</span>
+                  <span class="protocol-pill pill-a2a">A2A</span>
+                </div>
+                <span class="interaction-label">agent-to-tool</span>
+              </div>
+            </article>
+
+            <article class="scenario-card">
+              <div class="card-top">
+                <span class="mono">OATF-008</span>
+                <span class="severity sev-medium">Medium</span>
+              </div>
+              <div class="title">Capability probing through refusal differentials</div>
+              <div class="desc">Attacker infers hidden tool or scope availability from refusal shape and latency variance.</div>
+              <div class="card-bottom">
+                <div class="tag-row">
+                  <span class="protocol-pill pill-agui">AG-UI</span>
+                  <span class="protocol-pill pill-a2a">A2A</span>
+                </div>
+                <span class="interaction-label">user-to-agent</span>
+              </div>
+            </article>
+
+            <article class="scenario-card">
+              <div class="card-top">
+                <span class="mono">OATF-009</span>
+                <span class="severity sev-high">High</span>
+              </div>
+              <div class="title">Approval bypass through stale state snapshot</div>
+              <div class="desc">Agent acts on outdated authorization context after concurrent approval state changes.</div>
+              <div class="card-bottom">
+                <div class="tag-row">
+                  <span class="protocol-pill pill-mcp">MCP</span>
+                  <span class="protocol-pill pill-agui">AG-UI</span>
+                </div>
+                <span class="interaction-label">agent-to-tool</span>
+              </div>
+            </article>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <div class="frame-wrap">
+      <div class="frame-label">Desktop • 1440px • Page 2 / Scenario detail</div>
+      <div class="page">
+        <div class="canvas">
+          <header class="nav">
+            <div class="nav-left">
+              <a class="brand" href="#">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M2 13.5L7 2.5" stroke="#E4E4E7" stroke-width="1.75" stroke-linecap="round"/>
+                  <path d="M7.5 15.5L12.5 4.5" stroke="#E4E4E7" stroke-width="1.75" stroke-linecap="round"/>
+                  <path d="M13 15.5L16 8.8" stroke="#E4E4E7" stroke-width="1.75" stroke-linecap="round"/>
+                </svg>
+                <span>OATF Registry</span>
+              </a>
+              <nav class="nav-links">
+                <a class="active" href="#">Registry</a>
+                <a href="#">Coverage</a>
+                <a href="#">About</a>
+              </nav>
+            </div>
+            <div class="nav-right">
+              <a href="#">oatf.io</a>
+              <a href="#" aria-label="GitHub">
+                <svg class="github-icon" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M8 0.2C3.58 0.2 0 3.78 0 8.2C0 11.74 2.29 14.74 5.47 15.8C5.87 15.87 6.02 15.63 6.02 15.42C6.02 15.24 6.01 14.66 6.01 13.89C3.78 14.37 3.31 12.95 3.31 12.95C2.95 12.03 2.43 11.79 2.43 11.79C1.71 11.3 2.49 11.31 2.49 11.31C3.29 11.36 3.71 12.13 3.71 12.13C4.42 13.34 5.57 12.99 6.03 12.79C6.1 12.28 6.31 11.93 6.54 11.73C4.76 11.53 2.89 10.84 2.89 7.75C2.89 6.87 3.2 6.15 3.72 5.58C3.64 5.38 3.37 4.56 3.8 3.46C3.8 3.46 4.47 3.25 6 4.28C6.64 4.1 7.32 4.01 8 4.01C8.68 4.01 9.36 4.1 10 4.28C11.53 3.25 12.2 3.46 12.2 3.46C12.63 4.56 12.36 5.38 12.28 5.58C12.8 6.15 13.11 6.87 13.11 7.75C13.11 10.85 11.24 11.53 9.45 11.73C9.74 11.98 10 12.49 10 13.27C10 14.38 9.99 15.19 9.99 15.42C9.99 15.63 10.13 15.88 10.54 15.8C13.71 14.74 16 11.74 16 8.2C16 3.78 12.42 0.2 8 0.2Z"/>
+                </svg>
+              </a>
+            </div>
+          </header>
+
+          <main class="content-center">
+            <section class="detail-header">
+              <div class="mono detail-id">OATF-002</div>
+              <h1 class="detail-title">Delegation loop causes privilege amplification</h1>
+              <div class="meta-row">
+                <div class="meta-left">
+                  <span class="severity sev-critical">Critical</span>
+                  <span class="protocol-pill pill-a2a">A2A</span>
+                  <span class="protocol-pill pill-mcp">MCP</span>
+                  <span class="status-pill">agent-to-agent</span>
+                  <span class="status-pill">stable</span>
+                </div>
+                <button class="btn-outline accent">Open in Builder</button>
+              </div>
+            </section>
+
+            <section class="section">
+              <div class="section-label">Description</div>
+              <p class="body-copy">
+                A lower-trust agent induces a higher-trust peer to recursively delegate execution until the original request is carried under a more privileged identity than intended by policy. The exploit emerges when delegation history is not preserved as a hard authorization constraint across handoffs, allowing each hop to reinterpret provenance and scope independently.
+              </p>
+            </section>
+
+            <section class="section">
+              <div class="section-label">Framework Mappings</div>
+              <table class="mapping-table">
+                <thead>
+                  <tr>
+                    <th>Framework</th>
+                    <th>Technique ID</th>
+                    <th>Name</th>
+                    <th>Relationship</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>MITRE ATLAS</td>
+                    <td><a class="link-accent mono" href="#">AML.T0051</a></td>
+                    <td>Prompt injection</td>
+                    <td>Precondition / enabling step</td>
+                  </tr>
+                  <tr>
+                    <td>MITRE ATT&amp;CK</td>
+                    <td><a class="link-accent mono" href="#">T1078</a></td>
+                    <td>Valid accounts</td>
+                    <td>Analogous identity misuse</td>
+                  </tr>
+                  <tr>
+                    <td>OWASP LLM</td>
+                    <td><a class="link-accent mono" href="#">LLM01</a></td>
+                    <td>Prompt injection</td>
+                    <td>Primary overlap</td>
+                  </tr>
+                  <tr>
+                    <td>MITRE ATLAS</td>
+                    <td><a class="link-accent mono" href="#">AML.T0017</a></td>
+                    <td>Exfiltration via agent channel</td>
+                    <td>Common follow-on effect</td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
+
+            <section class="section">
+              <div class="section-label">Attack Flow</div>
+              <div class="tabs">
+                <div class="tab active">Sequence</div>
+                <div class="tab">State</div>
+              </div>
+              <div class="diagram-box">
+                <svg width="100%" height="270" viewBox="0 0 860 270" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sequence diagram placeholder">
+                  <rect x="20" y="16" width="180" height="38" rx="6" stroke="#3B82F6" stroke-width="1.5" fill="#151A24"/>
+                  <rect x="660" y="16" width="180" height="38" rx="6" stroke="#2A2D37" stroke-width="1.5" fill="#151A24"/>
+                  <text x="110" y="40" text-anchor="middle" fill="#E4E4E7" font-family="Inter, sans-serif" font-size="14">Attacker</text>
+                  <text x="750" y="40" text-anchor="middle" fill="#E4E4E7" font-family="Inter, sans-serif" font-size="14">Agent</text>
+                  <line x1="110" y1="62" x2="110" y2="240" stroke="#2A2D37" stroke-dasharray="4 6"/>
+                  <line x1="750" y1="62" x2="750" y2="240" stroke="#2A2D37" stroke-dasharray="4 6"/>
+                  <rect x="250" y="78" width="360" height="32" rx="6" fill="#1A1D27" stroke="#2A2D37"/>
+                  <text x="430" y="99" text-anchor="middle" fill="#A1A1AA" font-family="Inter, sans-serif" font-size="12" letter-spacing="1">PHASE 1 — DELEGATION SETUP</text>
+                  <path d="M126 130H734" stroke="#E4E4E7" stroke-width="1.5"/>
+                  <path d="M734 130L724 125V135L734 130Z" fill="#E4E4E7"/>
+                  <text x="430" y="121" text-anchor="middle" fill="#A1A1AA" font-family="Inter, sans-serif" font-size="12">crafted task request with nested escalation cues</text>
+                  <path d="M734 160H126" stroke="#E4E4E7" stroke-width="1.5"/>
+                  <path d="M126 160L136 155V165L126 160Z" fill="#E4E4E7"/>
+                  <text x="430" y="151" text-anchor="middle" fill="#A1A1AA" font-family="Inter, sans-serif" font-size="12">delegation accepted without provenance lock</text>
+                  <rect x="250" y="186" width="360" height="32" rx="6" fill="#1A1D27" stroke="#2A2D37"/>
+                  <text x="430" y="207" text-anchor="middle" fill="#A1A1AA" font-family="Inter, sans-serif" font-size="12" letter-spacing="1">PHASE 2 — PRIVILEGE AMPLIFICATION</text>
+                  <path d="M126 236H734" stroke="#E4E4E7" stroke-width="1.5"/>
+                  <path d="M734 236L724 231V241L734 236Z" fill="#E4E4E7"/>
+                  <text x="430" y="228" text-anchor="middle" fill="#A1A1AA" font-family="Inter, sans-serif" font-size="12">privileged action executed under downstream trust context</text>
+                </svg>
+              </div>
+            </section>
+
+            <section class="section">
+              <div class="section-label">Indicators</div>
+              <div class="indicator-list">
+                <div class="indicator-row">
+                  <span class="mono">IND-0021</span>
+                  <span class="protocol-pill pill-a2a">A2A</span>
+                  <span class="surface-label mono">delegation.chain_depth</span>
+                  <span class="desc-inline">Depth increases without a corresponding scope-reduction marker.</span>
+                  <span class="chevron">▸</span>
+                </div>
+                <div class="indicator-row">
+                  <span class="mono">IND-0022</span>
+                  <span class="protocol-pill pill-mcp">MCP</span>
+                  <span class="surface-label mono">session.auth_origin</span>
+                  <span class="desc-inline">Origin identity changes while capability set expands across the same task lineage.</span>
+                  <span class="chevron">▸</span>
+                </div>
+                <div class="indicator-row">
+                  <span class="mono">IND-0023</span>
+                  <span class="protocol-pill pill-a2a">A2A</span>
+                  <span class="surface-label mono">handoff.provenance</span>
+                  <span class="desc-inline">Missing immutable provenance envelope on cross-agent request transfer.</span>
+                  <span class="chevron">▸</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="section">
+              <div class="section-label">YAML</div>
+              <div class="code-wrap">
+                <div class="code-toolbar">
+                  <span>scenario.yaml</span>
+                  <span>15 of 31 lines</span>
+                </div>
+                <pre><code><span class="yaml-key">id</span>: <span class="yaml-string">OATF-002</span>
+<span class="yaml-key">name</span>: <span class="yaml-string">Delegation loop causes privilege amplification</span>
+<span class="yaml-key">status</span>: <span class="yaml-string">stable</span>
+<span class="yaml-key">severity</span>: <span class="yaml-string">critical</span>
+<span class="yaml-key">protocols</span>:
+  - <span class="yaml-string">a2a</span>
+  - <span class="yaml-string">mcp</span>
+<span class="yaml-key">interaction_model</span>: <span class="yaml-string">agent-to-agent</span>
+<span class="yaml-key">classification</span>: <span class="yaml-string">privilege-amplification</span>
+<span class="yaml-key">description</span>: >
+  Recursive delegation causes a request to cross trust boundaries
+  without carrying immutable provenance and authorization constraints.
+<span class="yaml-key">indicators</span>:
+  - <span class="yaml-key">id</span>: <span class="yaml-string">IND-0021</span>
+    <span class="yaml-key">surface</span>: <span class="yaml-string">delegation.chain_depth</span>
+    <span class="yaml-key">protocol</span>: <span class="yaml-string">a2a</span>
+<span class="yaml-comment"># Show more…</span></code></pre>
+              </div>
+              <div class="action-row">
+                <button class="btn">Download .yaml</button>
+                <button class="btn btn-filled">Open in Builder</button>
+              </div>
+            </section>
+          </main>
+        </div>
+      </div>
+    </div>
+
+    <div class="frame-wrap">
+      <div class="frame-label">Desktop • 1440px • Page 3 / Coverage matrix</div>
+      <div class="page">
+        <div class="canvas">
+          <header class="nav">
+            <div class="nav-left">
+              <a class="brand" href="#">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M2 13.5L7 2.5" stroke="#E4E4E7" stroke-width="1.75" stroke-linecap="round"/>
+                  <path d="M7.5 15.5L12.5 4.5" stroke="#E4E4E7" stroke-width="1.75" stroke-linecap="round"/>
+                  <path d="M13 15.5L16 8.8" stroke="#E4E4E7" stroke-width="1.75" stroke-linecap="round"/>
+                </svg>
+                <span>OATF Registry</span>
+              </a>
+              <nav class="nav-links">
+                <a href="#">Registry</a>
+                <a class="active" href="#">Coverage</a>
+                <a href="#">About</a>
+              </nav>
+            </div>
+            <div class="nav-right">
+              <a href="#">oatf.io</a>
+              <a href="#" aria-label="GitHub">
+                <svg class="github-icon" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M8 0.2C3.58 0.2 0 3.78 0 8.2C0 11.74 2.29 14.74 5.47 15.8C5.87 15.87 6.02 15.63 6.02 15.42C6.02 15.24 6.01 14.66 6.01 13.89C3.78 14.37 3.31 12.95 3.31 12.95C2.95 12.03 2.43 11.79 2.43 11.79C1.71 11.3 2.49 11.31 2.49 11.31C3.29 11.36 3.71 12.13 3.71 12.13C4.42 13.34 5.57 12.99 6.03 12.79C6.1 12.28 6.31 11.93 6.54 11.73C4.76 11.53 2.89 10.84 2.89 7.75C2.89 6.87 3.2 6.15 3.72 5.58C3.64 5.38 3.37 4.56 3.8 3.46C3.8 3.46 4.47 3.25 6 4.28C6.64 4.1 7.32 4.01 8 4.01C8.68 4.01 9.36 4.1 10 4.28C11.53 3.25 12.2 3.46 12.2 3.46C12.63 4.56 12.36 5.38 12.28 5.58C12.8 6.15 13.11 6.87 13.11 7.75C13.11 10.85 11.24 11.53 9.45 11.73C9.74 11.98 10 12.49 10 13.27C10 14.38 9.99 15.19 9.99 15.42C9.99 15.63 10.13 15.88 10.54 15.8C13.71 14.74 16 11.74 16 8.2C16 3.78 12.42 0.2 8 0.2Z"/>
+                </svg>
+              </a>
+            </div>
+          </header>
+
+          <main class="heatmap-wrap">
+            <div class="heatmap-title-row">
+              <div>
+                <h1 class="heatmap-title">Coverage matrix</h1>
+                <div class="heatmap-sub">Protocol coverage by mapped MITRE technique</div>
+              </div>
+              <div class="small muted">47 scenarios • 18 techniques represented</div>
+            </div>
+            <table class="matrix">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th class="mcp-head">MCP</th>
+                  <th class="a2a-head">A2A</th>
+                  <th class="agui-head">AG-UI</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="rowhead">AML.T0051</td>
+                  <td class="cell fill-mcp-2">4</td>
+                  <td class="cell fill-a2a-1">1</td>
+                  <td class="cell fill-agui-1">2</td>
+                </tr>
+                <tr>
+                  <td class="rowhead">AML.T0017</td>
+                  <td class="cell fill-mcp-1">2</td>
+                  <td class="cell empty">0</td>
+                  <td class="cell fill-agui-1">1</td>
+                </tr>
+                <tr>
+                  <td class="rowhead">T1078</td>
+                  <td class="cell fill-mcp-1">1</td>
+                  <td class="cell fill-a2a-2">3</td>
+                  <td class="cell empty">0</td>
+                </tr>
+                <tr>
+                  <td class="rowhead">T1550</td>
+                  <td class="cell fill-mcp-2">3</td>
+                  <td class="cell fill-a2a-1">1</td>
+                  <td class="cell empty">0</td>
+                </tr>
+                <tr>
+                  <td class="rowhead">LLM01</td>
+                  <td class="cell fill-mcp-2">4</td>
+                  <td class="cell fill-a2a-1">2</td>
+                  <td class="cell fill-agui-2">3</td>
+                </tr>
+                <tr>
+                  <td class="rowhead">LLM06</td>
+                  <td class="cell empty">0</td>
+                  <td class="cell fill-a2a-1">1</td>
+                  <td class="cell fill-agui-2">3</td>
+                </tr>
+                <tr>
+                  <td class="rowhead">AML.T0043</td>
+                  <td class="cell fill-mcp-1">2</td>
+                  <td class="cell fill-a2a-1">1</td>
+                  <td class="cell empty">0</td>
+                </tr>
+                <tr>
+                  <td class="rowhead">T1190</td>
+                  <td class="cell fill-mcp-1">1</td>
+                  <td class="cell empty">0</td>
+                  <td class="cell fill-agui-1">1</td>
+                </tr>
+              </tbody>
+            </table>
+          </main>
+        </div>
+      </div>
+    </div>
+
+    <div class="frame-wrap" style="width: 423px;">
+      <div class="frame-label">Mobile • 375px • Page 1 / Registry index</div>
+      <div class="page" style="max-width: 423px;">
+        <div class="mobile-shell">
+          <header class="mobile-nav">
+            <a class="brand" href="#" style="gap:10px; font-size:14px;">
+              <svg width="16" height="16" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M2 13.5L7 2.5" stroke="#E4E4E7" stroke-width="1.75" stroke-linecap="round"/>
+                <path d="M7.5 15.5L12.5 4.5" stroke="#E4E4E7" stroke-width="1.75" stroke-linecap="round"/>
+                <path d="M13 15.5L16 8.8" stroke="#E4E4E7" stroke-width="1.75" stroke-linecap="round"/>
+              </svg>
+              <span>OATF Registry</span>
+            </a>
+            <a href="#" class="small muted">oatf.io</a>
+          </header>
+
+          <div class="mobile-filter-row">
+            <button class="filters-btn">Filters</button>
+            <div class="small muted">23 of 47 scenarios</div>
+          </div>
+
+          <div class="mobile-cards">
+            <article class="scenario-card" style="min-height: auto;">
+              <div class="card-top">
+                <span class="mono">OATF-001</span>
+                <span class="severity sev-high">High</span>
+              </div>
+              <div class="title">Indirect prompt injection via tool result</div>
+              <div class="desc">Untrusted tool output overrides agent policy and changes subsequent action selection.</div>
+              <div class="card-bottom">
+                <div class="tag-row">
+                  <span class="protocol-pill pill-mcp">MCP</span>
+                  <span class="protocol-pill pill-a2a">A2A</span>
+                </div>
+                <span class="interaction-label">agent-to-tool</span>
+              </div>
+            </article>
+
+            <article class="scenario-card" style="min-height: auto;">
+              <div class="card-top">
+                <span class="mono">OATF-002</span>
+                <span class="severity sev-critical">Critical</span>
+              </div>
+              <div class="title">Delegation loop causes privilege amplification</div>
+              <div class="desc">Recursive handoff chain causes execution under a higher-trust agent identity.</div>
+              <div class="card-bottom">
+                <div class="tag-row">
+                  <span class="protocol-pill pill-a2a">A2A</span>
+                </div>
+                <span class="interaction-label">agent-to-agent</span>
+              </div>
+            </article>
+
+            <article class="scenario-card" style="min-height: auto;">
+              <div class="card-top">
+                <span class="mono">OATF-003</span>
+                <span class="severity sev-medium">Medium</span>
+              </div>
+              <div class="title">User-supplied memory seeding</div>
+              <div class="desc">Persistent context captures adversarial instructions that survive session boundaries.</div>
+              <div class="card-bottom">
+                <div class="tag-row">
+                  <span class="protocol-pill pill-mcp">MCP</span>
+                  <span class="protocol-pill pill-agui">AG-UI</span>
+                </div>
+                <span class="interaction-label">user-to-agent</span>
+              </div>
+            </article>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
