@@ -5,7 +5,7 @@ import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
   output: 'static',
-  site: 'https://scenarios.oatf.io',
+  site: 'https://oatf.dev',
   base: '/',
   integrations: [react()],
   vite: {

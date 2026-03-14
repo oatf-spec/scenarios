@@ -32,7 +32,7 @@ const yamlText = fs.readFileSync(yamlPath, 'utf-8');
 const pageTitle = `${id}: ${props.name} | OATF Scenarios`;
 const sevLabel = props.severity_level.charAt(0).toUpperCase() + props.severity_level.slice(1);
 const ogDesc = `${sevLabel} severity ${props.protocols.join('/')} attack: ${props.description.replace(/\n/g, ' ')}`;
-const canonicalUrl = `https://scenarios.oatf.io/${id}/`;
+const canonicalUrl = `https://oatf.dev/${id}/`;
 ---
 
 <html lang="en">
