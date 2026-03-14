@@ -160,7 +160,7 @@ export default function DetailView({ yamlText, scenarioId }: Props) {
   }
 
   return (
-    <div className="max-w-[calc(960px+96px)] mx-auto px-6 md:px-12 py-8 pb-16">
+    <div className="max-w-[calc(960px+96px)] w-full mx-auto px-6 md:px-12 py-8 pb-16 overflow-hidden">
       {/* Header */}
       <section className="flex flex-col gap-3 pb-6">
         <div className="font-mono text-sm text-text-2">{attack.id}</div>
@@ -215,8 +215,8 @@ export default function DetailView({ yamlText, scenarioId }: Props) {
         <div className="text-[11px] text-text-2 uppercase tracking-[0.1em] font-bold">
           Description
         </div>
-        <p className="text-[15px] text-text leading-relaxed max-w-[74ch] m-0 whitespace-pre-line">
-          {attack.description?.trim()}
+        <p className="text-[15px] text-text leading-relaxed max-w-[74ch] m-0">
+          {attack.description?.trim().replace(/\n(?!\n)/g, ' ')}
         </p>
       </section>
 
@@ -383,17 +383,17 @@ function IndicatorRow({ indicator }: { indicator: any }) {
       className="border border-border bg-surface rounded-[6px] px-3.5 py-3 cursor-pointer"
       onClick={() => setExpanded(!expanded)}
     >
-      <div className="grid items-center gap-3 text-[13px]" style={{ gridTemplateColumns: 'auto auto 1fr auto' }}>
-        <span className="font-mono text-text-2">{indicator.id}</span>
+      <div className="flex items-center gap-3 text-[13px] min-w-0">
+        <span className="font-mono text-text-2 shrink-0">{indicator.id}</span>
         {indicator.protocol && (
           <span
-            className={`inline-flex items-center h-[22px] px-2 rounded-full text-[11px] font-bold text-white ${protocolColor}`}
+            className={`inline-flex items-center h-[22px] px-2 rounded-full text-[11px] font-bold text-white shrink-0 ${protocolColor}`}
           >
             {protocolLabel(indicator.protocol)}
           </span>
         )}
-        <span className="text-text-2 truncate">{indicator.description}</span>
-        <span className="text-text-2 text-base">{expanded ? '▾' : '▸'}</span>
+        <span className="text-text-2 truncate flex-1 min-w-0">{indicator.description}</span>
+        <span className="text-text-2 text-base shrink-0">{expanded ? '▾' : '▸'}</span>
       </div>
       {expanded && (
         <div className="mt-3 pt-3 border-t border-border">
