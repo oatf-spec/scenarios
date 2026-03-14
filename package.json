@@ -10,7 +10,8 @@
     "build": "npm run generate-index && astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "generate-index": "tsx scripts/generate-index.ts"
+    "generate-index": "tsx scripts/generate-index.ts",
+    "validate-scenarios": "tsx scripts/validate-scenarios.ts"
   },
   "dependencies": {
     "@astrojs/react": "^4.2.1",

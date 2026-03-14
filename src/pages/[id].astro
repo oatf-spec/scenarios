@@ -4,30 +4,56 @@ import '../styles/global.css';
 import fs from 'node:fs';
 import path from 'node:path';
 
+interface ScenarioMeta {
+  id: string;
+  name: string;
+  description: string;
+  severity_level: string;
+  protocols: string[];
+}
+
 export async function getStaticPaths() {
   const indexPath = path.resolve('public/library/index.json');
   const raw = fs.readFileSync(indexPath, 'utf-8');
-  const scenarios = JSON.parse(raw) as Array<{ id: string; name: string }>;
+  const scenarios = JSON.parse(raw) as ScenarioMeta[];
 
   return scenarios.map((s) => ({
     params: { id: s.id },
-    props: { scenarioId: s.id, scenarioName: s.name },
+    props: s,
   }));
 }
 
 const { id } = Astro.params;
-const { scenarioName } = Astro.props;
+const props = Astro.props as ScenarioMeta;
 
 const yamlPath = path.resolve(`public/library/${id}.yaml`);
 const yamlText = fs.readFileSync(yamlPath, 'utf-8');
+
+const pageTitle = `${id}: ${props.name} | OATF Scenarios`;
+const sevLabel = props.severity_level.charAt(0).toUpperCase() + props.severity_level.slice(1);
+const ogDesc = `${sevLabel} severity ${props.protocols.join('/')} attack: ${props.description.replace(/\n/g, ' ')}`;
+const canonicalUrl = `https://scenarios.oatf.io/${id}/`;
 ---
 
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{id} — {scenarioName} | OATF Scenarios</title>
-    <meta name="description" content={`OATF scenario ${id}: ${scenarioName}`} />
+    <title>{pageTitle}</title>
+    <meta name="description" content={ogDesc} />
+    <link rel="canonical" href={canonicalUrl} />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={ogDesc} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalUrl} />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={ogDesc} />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
