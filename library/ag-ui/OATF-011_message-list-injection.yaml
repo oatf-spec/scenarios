@@ -51,6 +51,14 @@ attack:
       - history-manipulation
       - bidirectional
 
+  references:
+    - url: "https://learn.microsoft.com/en-us/agent-framework/integrations/ag-ui/security-considerations"
+      title: "AG-UI Security Considerations"
+      description: "Microsoft documentation explicitly warning that the messages list and state are the primary vectors for prompt injection in AG-UI"
+    - url: "https://www.datacamp.com/tutorial/ag-ui"
+      title: "AG-UI Protocol Tutorial"
+      description: "DataCamp tutorial covering AG-UI's RunAgentInput structure and bidirectional message flow architecture"
+
   execution:
     mode: ag_ui_client
     state:

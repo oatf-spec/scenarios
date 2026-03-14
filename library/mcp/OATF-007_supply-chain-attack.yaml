@@ -52,6 +52,23 @@ attack:
       - registry
       - multi-phase
 
+  references:
+    - url: "https://snyk.io/blog/malicious-mcp-server-on-npm-postmark-mcp-harvests-emails/"
+      title: "Malicious MCP Server on npm postmark-mcp Harvests Emails"
+      description: "Snyk analysis of the malicious Postmark MCP server that injected BCC copies across 15 package versions"
+    - url: "https://postmarkapp.com/blog/information-regarding-malicious-postmark-mcp-package"
+      title: "Security Alert: Malicious postmark-mcp npm Package"
+      description: "Official Postmark advisory about the supply chain attack impersonating their MCP server"
+    - url: "https://blog.gitguardian.com/breaking-mcp-server-hosting/"
+      title: "From Path Traversal to Supply Chain Compromise: Breaking MCP Server Hosting"
+      description: "GitGuardian discovery of Smithery platform breach compromising 3,000+ MCP server applications"
+    - url: "https://nvd.nist.gov/vuln/detail/CVE-2025-6514"
+      title: "CVE-2025-6514: mcp-remote OS Command Injection"
+      description: "Critical CVSS 9.6 vulnerability in mcp-remote (437,000+ downloads) enabling OS command execution via OAuth"
+    - url: "https://www.antiy.net/p/clawhavoc-analysis-of-large-scale-poisoning-campaign-targeting-the-openclaw-skill-market-for-ai-agents/"
+      title: "ClawHavoc: Analysis of Large-Scale Poisoning Campaign"
+      description: "Antiy CERT analysis of 1,184 malicious skills found in ClawHub agent marketplace (February 2026)"
+
   execution:
     mode: mcp_server
     phases:

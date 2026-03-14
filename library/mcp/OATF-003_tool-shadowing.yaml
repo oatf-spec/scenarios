@@ -52,6 +52,17 @@ attack:
       - injection
       - invisible
 
+  references:
+    - url: "https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks"
+      title: "MCP Security Notification: Tool Poisoning Attacks"
+      description: "Invariant Labs demonstration of tool shadowing where a malicious add tool redirected emails without being invoked"
+    - url: "https://invariantlabs.ai/blog/whatsapp-mcp-exploited"
+      title: "WhatsApp MCP Exploited: Exfiltrating Your Message History via MCP"
+      description: "Tool shadowing combined with rug pull for invisible persistent cross-server attacks"
+    - url: "https://github.com/invariantlabs-ai/mcp-injection-experiments"
+      title: "MCP Injection Experiments"
+      description: "Open-source PoC code including tool shadowing cross-server hijack scenarios"
+
   execution:
     actors:
       - name: trusted_email_server

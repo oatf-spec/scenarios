@@ -58,6 +58,17 @@ attack:
       - authorization
       - service-account
 
+  references:
+    - url: "https://blog.quarkslab.com/agentic-ai-the-confused-deputy-problem.html"
+      title: "Agentic AI: The Confused Deputy Problem"
+      description: "Quarkslab PoC demonstrating a medical AI assistant tricked into querying unauthorized patient records via service account"
+    - url: "https://embracethered.com/blog/posts/2025/github-copilot-remote-code-execution-via-prompt-injection/"
+      title: "GitHub Copilot: Remote Code Execution via Prompt Injection (CVE-2025-53773)"
+      description: "Prompt injection in code comments caused Copilot to enable YOLO mode and execute arbitrary commands"
+    - url: "https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/"
+      title: "The Lethal Trifecta for AI Agents"
+      description: "Simon Willison's AI Kill Chain framework: prompt injection → confused deputy → automatic tool invocation"
+
   execution:
     mode: mcp_server
     state:

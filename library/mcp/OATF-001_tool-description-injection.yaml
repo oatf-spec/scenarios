@@ -11,11 +11,17 @@ attack:
     A malicious MCP server embeds prompt injection payload in a tool's
     description field. When the agent retrieves the tool list, the injected
     instructions attempt to override the agent's policy and cause it to
-    read sensitive files from the host filesystem.
+    read sensitive files from the host filesystem. Tool descriptions are
+    fully visible to the LLM but hidden from users behind simplified UI.
+    Invariant Labs demonstrated this against Cursor IDE, exfiltrating SSH
+    keys and MCP credentials. The MCPTox benchmark found attack success
+    rates exceeding 60% across 20 LLM agents, with o1-mini reaching 72.8%.
+    MintMCP found 5.5% of public MCP servers already contain tool poisoning
+    vulnerabilities.
 
   severity:
-    level: high
-    confidence: 75
+    level: critical
+    confidence: 85
 
   impact:
     - behavior_manipulation
@@ -25,15 +31,46 @@ attack:
     category: capability_poisoning
     mappings:
       - framework: atlas
-        id: AML.T0051
-        name: "LLM Prompt Injection"
+        id: AML.T0051.001
+        name: "Direct Prompt Injection"
+      - framework: atlas
+        id: AML.T0061
+        name: "AI Agent Tools"
+      - framework: mitre_attack
+        id: T1195.002
+        name: "Supply Chain Compromise: Software Supply Chain"
+        relationship: related
+      - framework: mitre_attack
+        id: T1036
+        name: "Masquerading"
+        relationship: related
       - framework: owasp_llm
         id: LLM01
         name: "Prompt Injection"
+      - framework: owasp_llm
+        id: LLM03
+        name: "Supply Chain Vulnerabilities"
     tags:
       - injection
       - tool-description
       - single-shot
+
+  references:
+    - url: "https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks"
+      title: "MCP Security Notification: Tool Poisoning Attacks"
+      description: "Invariant Labs disclosure of tool description injection attacks against Cursor IDE, demonstrating SSH key exfiltration"
+    - url: "https://blog.trailofbits.com/2025/04/21/jumping-the-line-how-mcp-servers-can-attack-you-before-you-ever-use-them/"
+      title: "Jumping the Line: How MCP Servers Can Attack You Before You Ever Use Them"
+      description: "Trail of Bits discovery of line jumping attacks where tool descriptions compromise agents before invocation"
+    - url: "https://arxiv.org/abs/2508.14925"
+      title: "MCPTox: A Benchmark for Tool Poisoning Attack on Real-World MCP Servers"
+      description: "Benchmark testing 20 LLM agents against 1,312 malicious test cases with attack success rates exceeding 60%"
+    - url: "https://www.mintmcp.com/blog/mcp-tool-poisoning"
+      title: "What is MCP Tool Poisoning? Complete Defense Guide"
+      description: "MintMCP research finding 5.5% of public MCP servers contain tool poisoning vulnerabilities"
+    - url: "https://github.com/invariantlabs-ai/mcp-injection-experiments"
+      title: "MCP Injection Experiments"
+      description: "Open-source proof-of-concept code for reproducing MCP tool poisoning attacks"
 
   execution:
     mode: mcp_server

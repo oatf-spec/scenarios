@@ -53,6 +53,20 @@ attack:
       - webhook
       - side-channel
 
+  references:
+    - url: "https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/"
+      title: "The Lethal Trifecta for AI Agents"
+      description: "Simon Willison's formulation: access to private data + exposure to untrusted content + external communication = reliable exfiltration"
+    - url: "https://hiddenlayer.com/innovation-hub/mcp-model-context-pitfalls-in-an-agentic-world/"
+      title: "MCP: Model Context Pitfalls in an Agentic World"
+      description: "HiddenLayer demonstrating Claude Desktop exfiltrating filesystem data via URL parameters to attacker webhook"
+    - url: "https://hiddenlayer.com/innovation-hub/exploiting-mcp-tool-parameters/"
+      title: "MCP Security Alert: Extracting AI System Prompts via Parameter Abuse"
+      description: "HiddenLayer research on data exfiltration through MCP tool parameter manipulation"
+    - url: "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
+      title: "OWASP Top 10 for Agentic Applications 2026"
+      description: "EchoLeak (CVE-2025-32711) zero-click exfiltration from M365 Copilot cited as real-world goal hijacking example"
+
   execution:
     mode: mcp_server
     state:

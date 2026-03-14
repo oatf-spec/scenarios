@@ -58,6 +58,17 @@ attack:
       - cross-agent
       - discovery
 
+  references:
+    - url: "https://www.legionsecurity.ai/blog-posts/security-analysis-ai-protocols"
+      title: "Basics & Security Analysis of AI Protocols: MCP, A2A, and AP2"
+      description: "Legion Security confirming A2A agent spoofing is trivial and prompt injection is working in production"
+    - url: "https://cloudsecurityalliance.org/blog/2025/04/30/threat-modeling-google-s-a2a-protocol-with-the-maestro-framework"
+      title: "Threat Modeling Google's A2A Protocol with the MAESTRO Framework"
+      description: "CSA MAESTRO framework rating cross-agent injection as high likelihood, high impact"
+    - url: "https://www.keysight.com/blogs/en/tech/nwvs/2025/05/28/potential-attack-surfaces-in-a2a"
+      title: "Potential Attack Surfaces in Agent2Agent (A2A) Protocol"
+      description: "Keysight PoC demonstrating a malicious stealer agent exfiltrating credit card data via A2A"
+
   execution:
     mode: a2a_server
     state:
