@@ -4,5 +4,7 @@
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-  gtag('config', 'G-Z8XPBJYDPX');
+  gtag('config', 'G-Z8XPBJYDPX', {
+    page_location: location.origin + location.pathname + location.search
+  });
 </script>
