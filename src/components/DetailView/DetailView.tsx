@@ -344,11 +344,14 @@ export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab }
             style={{ borderColor: '#171a22', background: '#0b0d13' }}
           >
             <span>scenario.yaml</span>
-            <span>
-              {yamlExpanded
-                ? `${yamlLines.length} lines`
-                : `${Math.min(20, yamlLines.length)} of ${yamlLines.length} lines`}
-            </span>
+            <div className="flex items-center gap-3">
+              <span>
+                {yamlExpanded
+                  ? `${yamlLines.length} lines`
+                  : `${Math.min(20, yamlLines.length)} of ${yamlLines.length} lines`}
+              </span>
+              <CopyButton text={yamlText} />
+            </div>
           </div>
           <pre className="m-0 p-4 overflow-auto font-mono text-xs leading-relaxed text-[#d4d4d8]">
             <code>{highlightYaml(previewLines.join('\n'))}</code>
@@ -427,5 +430,26 @@ function IndicatorRow({ indicator }: { indicator: any }) {
         </div>
       )}
     </div>
+  );
+}
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+
+  function handleCopy() {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }).catch(() => {});
+  }
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="text-text-2 hover:text-text cursor-pointer bg-transparent border-0 text-xs"
+      title="Copy YAML"
+    >
+      {copied ? 'Copied' : 'Copy'}
+    </button>
   );
 }
