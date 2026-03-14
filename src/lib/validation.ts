@@ -92,6 +92,18 @@ export function validate(yamlText: string): ValidationError[] {
     }
   } else if (exec.phases && Array.isArray(exec.phases)) {
     // Multi-phase
+    // V-028 phase.mode required when execution.mode absent
+    if (!exec.mode) {
+      for (const phase of exec.phases) {
+        if (!phase.mode) {
+          errors.push({
+            code: 'V-028',
+            message: `Phase "${phase.name}" has no mode and execution.mode is absent`,
+            line: findLine(`name: ${phase.name}`),
+          });
+        }
+      }
+    }
     exec.phases.forEach((p: any, i: number) => {
       allPhases.push({ name: p.name, index: i, hasTrigger: !!p.trigger });
     });

@@ -126,6 +126,8 @@ export default function DetailView({ yamlText, scenarioId }: Props) {
       } catch {
         // Mermaid render error — skip
       }
+    }).catch(() => {
+      // Mermaid failed to load — skip diagram
     });
 
     return () => { cancelled = true; };
@@ -247,7 +249,7 @@ export default function DetailView({ yamlText, scenarioId }: Props) {
                   const urlFn = FRAMEWORK_URLS[m.framework];
                   const url = urlFn ? urlFn(m.id) : '#';
                   return (
-                    <tr key={i} className="border-t border-border">
+                    <tr key={`${m.framework}-${m.id}`} className="border-t border-border">
                       <td className="py-3 pr-2 text-[13px]">
                         {FRAMEWORK_LABELS[m.framework] ?? m.framework}
                       </td>
@@ -255,7 +257,7 @@ export default function DetailView({ yamlText, scenarioId }: Props) {
                         <a
                           href={url}
                           target="_blank"
-                          rel="noopener"
+                          rel="noopener noreferrer"
                           className="font-mono text-[13px] text-accent hover:underline"
                         >
                           {m.id}

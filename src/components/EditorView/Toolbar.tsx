@@ -93,24 +93,29 @@ function Dropdown({ label, items, onSelect }: {
 function ShareButton({ yamlText }: { yamlText: string }) {
   const [status, setStatus] = useState<string | null>(null);
 
+  function showStatus(msg: string) {
+    setStatus(msg);
+    setTimeout(() => setStatus(null), 3000);
+  }
+
   function handleShare() {
     const compressed = compressYaml(yamlText);
     const base = typeof window !== 'undefined' ? window.location.origin : 'https://oatf.dev';
     const url = `${base}/view#yaml=${compressed}`;
 
     if (url.length > 15000) {
-      setStatus('URL too long — use Download instead');
-      setTimeout(() => setStatus(null), 3000);
+      showStatus('URL too long — use Download instead');
       return;
     }
 
     navigator.clipboard.writeText(url).then(() => {
       if (url.length > 8000) {
-        setStatus('Copied (warning: long URL may be truncated by Slack/Teams)');
+        showStatus('Copied (warning: long URL may be truncated by Slack/Teams)');
       } else {
-        setStatus('Link copied!');
+        showStatus('Link copied!');
       }
-      setTimeout(() => setStatus(null), 3000);
+    }).catch(() => {
+      showStatus('Failed to copy — check clipboard permissions');
     });
   }
 

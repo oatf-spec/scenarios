@@ -9,22 +9,31 @@ import ValidationPanel from './ValidationPanel';
 interface Props {
   initialYaml: string;
   scenarioId?: string;
+  onYamlChange?: (yaml: string) => void;
 }
 
-export default function EditorView({ initialYaml, scenarioId }: Props) {
+export default function EditorView({ initialYaml, scenarioId, onYamlChange }: Props) {
   const [yamlText, setYamlText] = useState(initialYaml);
   const [lastValidModel, setLastValidModel] = useState<TimelineModel | null>(null);
   const [highlightedPhase, setHighlightedPhase] = useState<number | undefined>();
   const [errors, setErrors] = useState<ValidationError[]>([]);
+  const [loadError, setLoadError] = useState(false);
   const editorRef = useRef<any>(null);
   const monacoRef = useRef<any>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const cursorListenerRef = useRef<any>(null);
   const [MonacoEditor, setMonacoEditor] = useState<any>(null);
+
+  // Use a ref for the model so the cursor handler always sees the latest
+  const modelRef = useRef<TimelineModel | null>(null);
+  const lastValidModelRef = useRef<TimelineModel | null>(null);
 
   // Lazy-load Monaco
   useEffect(() => {
     import('@monaco-editor/react').then((mod) => {
       setMonacoEditor(() => mod.default);
+    }).catch(() => {
+      setLoadError(true);
     });
   }, []);
 
@@ -39,9 +48,15 @@ export default function EditorView({ initialYaml, scenarioId }: Props) {
     }
   }, [yamlText]);
 
+  // Keep refs in sync
+  modelRef.current = model;
+
   // Update lastValidModel when we get a good parse
   useEffect(() => {
-    if (model && model.actors.length > 0) setLastValidModel(model);
+    if (model && model.actors.length > 0) {
+      setLastValidModel(model);
+      lastValidModelRef.current = model;
+    }
   }, [model]);
 
   // Run validation on change
@@ -49,17 +64,26 @@ export default function EditorView({ initialYaml, scenarioId }: Props) {
     setErrors(validate(yamlText));
   }, [yamlText]);
 
+  // Clean up debounce on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
   // Debounced YAML change handler
   const handleEditorChange = useCallback((value: string | undefined) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      setYamlText(value ?? '');
+      const v = value ?? '';
+      setYamlText(v);
+      onYamlChange?.(v);
     }, 150);
-  }, []);
+  }, [onYamlChange]);
 
   // Phase click → scroll editor
   const handlePhaseClick = useCallback((index: number) => {
-    const m = model ?? lastValidModel;
+    const m = modelRef.current ?? lastValidModelRef.current;
     if (!m || !editorRef.current) return;
     const allPhases = m.actors.flatMap((a) => a.phases);
     const phase = allPhases[index];
@@ -67,21 +91,7 @@ export default function EditorView({ initialYaml, scenarioId }: Props) {
     editorRef.current.revealLineInCenter(phase.yaml_line_start);
     editorRef.current.setPosition({ lineNumber: phase.yaml_line_start, column: 1 });
     editorRef.current.focus();
-  }, [model, lastValidModel]);
-
-  // Cursor position → highlight phase
-  const handleCursorChange = useCallback(() => {
-    const m = model ?? lastValidModel;
-    if (!m || !editorRef.current) return;
-    const pos = editorRef.current.getPosition();
-    if (!pos) return;
-    const line = pos.lineNumber;
-    const allPhases = m.actors.flatMap((a) => a.phases);
-    const idx = allPhases.findIndex(
-      (p) => p.yaml_line_start && p.yaml_line_end && line >= p.yaml_line_start && line <= p.yaml_line_end,
-    );
-    setHighlightedPhase(idx >= 0 ? idx : undefined);
-  }, [model, lastValidModel]);
+  }, []);
 
   // Line click from validation panel
   const handleLineClick = useCallback((line: number) => {
@@ -94,10 +104,11 @@ export default function EditorView({ initialYaml, scenarioId }: Props) {
   // Template replacement
   const handleTemplate = useCallback((content: string) => {
     setYamlText(content);
+    onYamlChange?.(content);
     if (editorRef.current) {
       editorRef.current.setValue(content);
     }
-  }, []);
+  }, [onYamlChange]);
 
   // Insert snippet at cursor
   const handleInsert = useCallback((snippet: string) => {
@@ -130,12 +141,38 @@ export default function EditorView({ initialYaml, scenarioId }: Props) {
     });
     monaco.editor.setTheme('oatf-dark');
 
-    // Track cursor position for phase highlighting
-    editor.onDidChangeCursorPosition(handleCursorChange);
+    // Track cursor position for phase highlighting — use refs to avoid stale closures
+    cursorListenerRef.current = editor.onDidChangeCursorPosition(() => {
+      const m = modelRef.current ?? lastValidModelRef.current;
+      if (!m) return;
+      const pos = editor.getPosition();
+      if (!pos) return;
+      const line = pos.lineNumber;
+      const allPhases = m.actors.flatMap((a: any) => a.phases);
+      const idx = allPhases.findIndex(
+        (p: any) => p.yaml_line_start && p.yaml_line_end && line >= p.yaml_line_start && line <= p.yaml_line_end,
+      );
+      setHighlightedPhase(idx >= 0 ? idx : undefined);
+    });
   }
+
+  // Clean up cursor listener on unmount
+  useEffect(() => {
+    return () => {
+      cursorListenerRef.current?.dispose();
+    };
+  }, []);
 
   const displayModel = model && model.actors.length > 0 ? model : lastValidModel;
   const parseError = !model || model.actors.length === 0;
+
+  if (loadError) {
+    return (
+      <div className="flex items-center justify-center h-64 text-text-2 text-sm">
+        Failed to load the editor. Try refreshing the page.
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-[calc(100vh-64px-44px)]">

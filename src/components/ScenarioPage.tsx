@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import DetailView from './DetailView/DetailView';
 
 const EditorView = lazy(() => import('./EditorView/EditorView'));
@@ -29,6 +29,10 @@ export default function ScenarioPage({ initialYaml, scenarioId, defaultTab = 'de
     }
     window.history.replaceState({}, '', url.toString());
   }, [tab]);
+
+  const handleYamlChange = useCallback((yaml: string) => {
+    setYamlText(yaml);
+  }, []);
 
   return (
     <div className="flex flex-col min-h-[calc(100vh-64px)]">
@@ -68,6 +72,7 @@ export default function ScenarioPage({ initialYaml, scenarioId, defaultTab = 'de
           <EditorView
             initialYaml={yamlText}
             scenarioId={scenarioId}
+            onYamlChange={handleYamlChange}
           />
         </Suspense>
       )}
