@@ -161,7 +161,7 @@ export default function DetailView({ yamlText, scenarioId }: Props) {
   }
 
   return (
-    <div className="max-w-[calc(960px+96px)] w-full mx-auto px-6 md:px-12 py-8 pb-16 overflow-hidden">
+    <div className="max-w-[calc(960px+96px)] w-full mx-auto px-6 md:px-12 py-8 pb-16 overflow-x-hidden">
       {/* Header */}
       <section className="flex flex-col gap-3 pb-6">
         <div className="font-mono text-sm text-text-2">{attack.id}</div>
