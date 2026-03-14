@@ -69,6 +69,17 @@ function validateScenario(filePath: string): string[] {
 
   if (!a.execution) {
     errors.push(`${relPath}: missing attack.execution`);
+  } else {
+    const exec = a.execution;
+    if (exec.actors && Array.isArray(exec.actors)) {
+      for (const actor of exec.actors) {
+        if (!actor.mode) {
+          errors.push(`${relPath}: actor "${actor.name ?? '(unnamed)'}" is missing mode`);
+        }
+      }
+    } else if (!exec.mode) {
+      errors.push(`${relPath}: missing execution.mode (required when not using actors)`);
+    }
   }
 
   // Verify filename convention: <ID>_<slug>.yaml

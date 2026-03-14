@@ -87,7 +87,7 @@ export default function EditorView({ initialYaml, scenarioId, onYamlChange }: Pr
     if (!m || !editorRef.current) return;
     const allPhases = m.actors.flatMap((a) => a.phases);
     const phase = allPhases[index];
-    if (!phase || !phase.yaml_line_start) return;
+    if (!phase || phase.yaml_line_start == null) return;
     editorRef.current.revealLineInCenter(phase.yaml_line_start);
     editorRef.current.setPosition({ lineNumber: phase.yaml_line_start, column: 1 });
     editorRef.current.focus();
@@ -150,7 +150,7 @@ export default function EditorView({ initialYaml, scenarioId, onYamlChange }: Pr
       const line = pos.lineNumber;
       const allPhases = m.actors.flatMap((a: any) => a.phases);
       const idx = allPhases.findIndex(
-        (p: any) => p.yaml_line_start && p.yaml_line_end && line >= p.yaml_line_start && line <= p.yaml_line_end,
+        (p: any) => p.yaml_line_start != null && p.yaml_line_end != null && line >= p.yaml_line_start && line <= p.yaml_line_end,
       );
       setHighlightedPhase(idx >= 0 ? idx : undefined);
     });

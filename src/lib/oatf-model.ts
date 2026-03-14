@@ -156,11 +156,13 @@ function buildPhase(
 /**
  * Estimate YAML line ranges for phases by searching the raw YAML string.
  * Returns an array of [startLine, endLine] pairs (1-indexed).
- * endBoundary limits the last phase's end line (for multi-actor scoping).
+ * searchAfter: 0-indexed line to start searching from (for multi-actor scoping).
+ * endBoundary: 0-indexed line limit for the last phase's end.
  */
 function estimatePhaseLines(
   yamlText: string,
   phaseNames: string[],
+  searchAfter: number = 0,
   endBoundary?: number,
 ): Array<[number, number]> {
   const lines = yamlText.split('\n');
@@ -170,16 +172,20 @@ function estimatePhaseLines(
   const phaseLineIndices: number[] = [];
   for (const name of phaseNames) {
     const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const idx = lines.findIndex(
-      (line, i) =>
-        !phaseLineIndices.includes(i) &&
-        line.match(new RegExp(`^\\s+-\\s+name:\\s+${escaped}\\s*$`)),
-    );
-    phaseLineIndices.push(idx >= 0 ? idx : -1);
+    const re = new RegExp(`^\\s+-\\s+name:\\s+${escaped}\\s*$`);
+    // Search only within the scoped range, skipping already-found indices
+    let idx = -1;
+    for (let i = searchAfter; i < lines.length; i++) {
+      if (!phaseLineIndices.includes(i) && re.test(lines[i])) {
+        idx = i;
+        break;
+      }
+    }
+    phaseLineIndices.push(idx);
   }
 
   for (let i = 0; i < phaseLineIndices.length; i++) {
-    const start = phaseLineIndices[i] >= 0 ? phaseLineIndices[i] + 1 : 0;
+    const start = phaseLineIndices[i] >= 0 ? phaseLineIndices[i] + 1 : 1;
     const end =
       i + 1 < phaseLineIndices.length && phaseLineIndices[i + 1] >= 0
         ? phaseLineIndices[i + 1] + 1
@@ -220,13 +226,19 @@ export function extractModel(doc: any, yamlText?: string): TimelineModel {
         const rawPhases = actor.phases ?? [];
         const phaseNames = rawPhases.map((p: any) => p.name ?? 'unnamed');
 
-        // Scope phase line ranges to this actor's block
+        // Scope phase line search to this actor's block
+        let searchAfter = 0;
         let endBoundary: number | undefined;
-        if (yamlText && ai + 1 < actorNames.length) {
-          endBoundary = findActorBoundary(yamlText, actorNames[ai + 1], 0);
+        if (yamlText) {
+          // Start searching from this actor's name line
+          searchAfter = findActorBoundary(yamlText, actor.name ?? 'default', 0);
+          // End at the next actor's name line
+          if (ai + 1 < actorNames.length) {
+            endBoundary = findActorBoundary(yamlText, actorNames[ai + 1], searchAfter + 1);
+          }
         }
         const lineRanges = yamlText
-          ? estimatePhaseLines(yamlText, phaseNames, endBoundary)
+          ? estimatePhaseLines(yamlText, phaseNames, searchAfter, endBoundary)
           : phaseNames.map(() => [0, 0] as [number, number]);
 
         const phases = rawPhases.map((p: any, i: number) => {
@@ -275,12 +287,19 @@ export function extractModel(doc: any, yamlText?: string): TimelineModel {
     // Single-phase form
     if (execution.mode && execution.state) {
       const mode = execution.mode;
+      // Find the execution: block start line (1-indexed)
+      let execStart = 1;
+      if (yamlText) {
+        const lines = yamlText.split('\n');
+        const idx = lines.findIndex((l) => /^\s+execution:/.test(l));
+        if (idx >= 0) execStart = idx + 1;
+      }
       const phase = buildPhase(
         { name: 'default', description: '', state: execution.state },
         mode,
         true,
-        0,
-        yamlText ? yamlText.split('\n').length : 0,
+        execStart,
+        yamlText ? yamlText.split('\n').length : execStart,
       );
 
       return {

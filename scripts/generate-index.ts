@@ -56,19 +56,25 @@ function extractMetadata(doc: any, filePath: string): ScenarioIndex {
   if (execution.actors) {
     // Multi-actor form
     for (const actor of execution.actors) {
-      protocols.add(getProtocolFromMode(actor.mode));
-      interactionModels.add(getInteractionModel(actor.mode));
+      if (actor.mode) {
+        protocols.add(getProtocolFromMode(actor.mode));
+        interactionModels.add(getInteractionModel(actor.mode));
+      }
       phaseCount += actor.phases?.length ?? 1;
     }
   } else if (execution.phases) {
     // Multi-phase form
-    protocols.add(getProtocolFromMode(execution.mode));
-    interactionModels.add(getInteractionModel(execution.mode));
+    if (execution.mode) {
+      protocols.add(getProtocolFromMode(execution.mode));
+      interactionModels.add(getInteractionModel(execution.mode));
+    }
     phaseCount = execution.phases.length;
   } else {
     // Single-phase form
-    protocols.add(getProtocolFromMode(execution.mode));
-    interactionModels.add(getInteractionModel(execution.mode));
+    if (execution.mode) {
+      protocols.add(getProtocolFromMode(execution.mode));
+      interactionModels.add(getInteractionModel(execution.mode));
+    }
     phaseCount = 1;
   }
 
