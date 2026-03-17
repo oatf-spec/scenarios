@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import yaml from 'js-yaml';
 import { extractModel, type TimelineModel } from '../../lib/oatf-model';
 import { generateSequence } from '../../lib/oatf-sequence';
@@ -66,15 +66,40 @@ function getProtocols(doc: any): string[] {
   return [...protocols];
 }
 
+function SectionHeading({ id, children }: { id: string; children: React.ReactNode }) {
+  return (
+    <h2
+      id={id}
+      className="text-[11px] text-text-2 uppercase tracking-[0.1em] font-bold cursor-pointer scroll-mt-24 group m-0"
+      onClick={() => window.history.replaceState(null, '', `#${id}`)}
+    >
+      {children}
+      <span className="opacity-0 group-hover:opacity-100 ml-1.5 text-text-2/50 transition-opacity">#</span>
+    </h2>
+  );
+}
+
+interface RelatedScenario {
+  id: string;
+  name: string;
+  description: string;
+  severity_level: string;
+  protocols: string[];
+  mappings: { framework: string; id: string; name: string }[];
+  tags: string[];
+  impact: string[];
+}
+
 interface Props {
   yamlText: string;
   scenarioId?: string;
   editorUrl?: string;
   shareTab?: 'editor' | 'detail';
   onEdit?: () => void;
+  relatedScenarios?: RelatedScenario[];
 }
 
-export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab, onEdit }: Props) {
+export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab, onEdit, relatedScenarios }: Props) {
   const [mermaidSvg, setMermaidSvg] = useState<string>('');
   const [yamlExpanded, setYamlExpanded] = useState(false);
   const mermaidRef = useRef<HTMLDivElement>(null);
@@ -134,6 +159,16 @@ export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab, 
     return () => { cancelled = true; };
   }, [seqSource, scenarioId]);
 
+  // Scroll to hash on mount
+  useEffect(() => {
+    const hash = window.location.hash.slice(1);
+    if (!hash) return;
+    requestAnimationFrame(() => {
+      const el = document.getElementById(hash);
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    });
+  }, []);
+
   if (!doc?.attack) {
     return <div className="text-text-2 text-sm py-8">Unable to parse scenario YAML.</div>;
   }
@@ -145,6 +180,25 @@ export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab, 
   const indicators = attack.indicators ?? [];
   const yamlLines = yamlText.split('\n');
   const previewLines = yamlExpanded ? yamlLines : yamlLines.slice(0, 20);
+
+  const topRelated = useMemo(() => {
+    if (!relatedScenarios?.length) return [];
+    const myMappings = new Set(mappings.map((m: any) => m.id));
+    const myTags = new Set(attack.classification?.tags ?? []);
+    const myImpact = new Set(attack.impact ?? []);
+    return relatedScenarios
+      .filter(s => s.id !== attack.id)
+      .map(s => {
+        let score = 0;
+        for (const m of s.mappings) if (myMappings.has(m.id)) score += 3;
+        for (const t of s.tags ?? []) if (myTags.has(t)) score += 2;
+        for (const i of s.impact ?? []) if (myImpact.has(i)) score += 1;
+        return { ...s, score };
+      })
+      .filter(s => s.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3);
+  }, [relatedScenarios, mappings, attack]);
 
   function handleDownload() {
     const blob = new Blob([yamlText], { type: 'text/yaml' });
@@ -265,9 +319,7 @@ export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab, 
 
       {/* Description */}
       <section className="mt-12 flex flex-col gap-4">
-        <div className="text-[11px] text-text-2 uppercase tracking-[0.1em] font-bold">
-          Description
-        </div>
+        <SectionHeading id="description">Description</SectionHeading>
         <p className="text-[15px] text-text leading-relaxed max-w-[74ch] m-0">
           {attack.description?.trim().replace(/\n(?!\n)/g, ' ')}
         </p>
@@ -276,9 +328,7 @@ export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab, 
       {/* References */}
       {(attack.references ?? []).length > 0 && (
         <section className="mt-12 flex flex-col gap-4">
-          <div className="text-[11px] text-text-2 uppercase tracking-[0.1em] font-bold">
-            References
-          </div>
+          <SectionHeading id="references">References</SectionHeading>
           <div className="flex flex-col gap-3">
             {attack.references.map((ref: { title?: string; url: string; description?: string }, i: number) => (
               <div key={i} className="flex flex-col gap-0.5">
@@ -302,9 +352,7 @@ export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab, 
       {/* Framework Mappings */}
       {mappings.length > 0 && (
         <section className="mt-12 flex flex-col gap-4">
-          <div className="text-[11px] text-text-2 uppercase tracking-[0.1em] font-bold">
-            Framework Mappings
-          </div>
+          <SectionHeading id="framework-mappings">Framework Mappings</SectionHeading>
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
@@ -358,9 +406,7 @@ export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab, 
       {/* Attack Structure (Timeline) */}
       {model && model.actors.length > 0 && (
         <section className="mt-12 flex flex-col gap-4">
-          <div className="text-[11px] text-text-2 uppercase tracking-[0.1em] font-bold">
-            Attack Structure
-          </div>
+          <SectionHeading id="attack-structure">Attack Structure</SectionHeading>
           <div className="bg-surface-2 border border-border rounded-[6px] p-6">
             <TimelineView model={model} />
           </div>
@@ -370,9 +416,7 @@ export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab, 
       {/* Message Flow (Mermaid) */}
       {seqSource && (
         <section className="mt-12 flex flex-col gap-4">
-          <div className="text-[11px] text-text-2 uppercase tracking-[0.1em] font-bold">
-            Message Flow
-          </div>
+          <SectionHeading id="message-flow">Message Flow</SectionHeading>
           <div
             ref={mermaidRef}
             className="bg-surface-2 border border-border rounded-[6px] p-6 min-h-[200px] flex items-center justify-center overflow-x-auto"
@@ -392,12 +436,12 @@ export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab, 
       {/* Indicators */}
       {indicators.length > 0 && (
         <section className="mt-12 flex flex-col gap-4">
-          <div className="text-[11px] text-text-2 uppercase tracking-[0.1em] font-bold">
+          <SectionHeading id="indicators">
             Indicators
             {attack.correlation?.logic && (
               <span className="text-text-2 normal-case tracking-normal font-normal"> · match {attack.correlation.logic}</span>
             )}
-          </div>
+          </SectionHeading>
           <div className="flex flex-col gap-2">
             {indicators.map((ind: any) => (
               <IndicatorRow key={ind.id} indicator={ind} />
@@ -416,9 +460,7 @@ export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab, 
         if (!match) return null;
         return (
           <section className="mt-12 flex flex-col gap-4">
-            <div className="text-[11px] text-text-2 uppercase tracking-[0.1em] font-bold">
-              Video demonstration
-            </div>
+            <SectionHeading id="video-demonstration">Video demonstration</SectionHeading>
             <div className="rounded-[6px] overflow-hidden border border-border" style={{ aspectRatio: '16/9' }}>
               <iframe
                 src={`https://www.youtube-nocookie.com/embed/${match[1]}`}
@@ -434,7 +476,7 @@ export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab, 
 
       {/* YAML */}
       <section className="mt-12 flex flex-col gap-4">
-        <div className="text-[11px] text-text-2 uppercase tracking-[0.1em] font-bold">YAML</div>
+        <SectionHeading id="yaml">YAML</SectionHeading>
         <div className="border border-border rounded-[6px] overflow-hidden" style={{ background: '#0d0f14' }}>
           <div
             className="flex items-center justify-between px-3 py-2.5 text-text-2 text-xs border-b"
@@ -463,6 +505,45 @@ export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab, 
           )}
         </div>
       </section>
+
+      {/* Related Scenarios */}
+      {topRelated.length > 0 && (
+        <section className="mt-12 flex flex-col gap-4">
+          <SectionHeading id="related-scenarios">Related Scenarios</SectionHeading>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {topRelated.map(s => (
+              <a
+                key={s.id}
+                href={`/${s.id}/`}
+                className="bg-surface border border-border rounded-[6px] p-4 min-h-[148px] flex flex-col gap-3 transition-colors hover:border-border-hover"
+              >
+                <div className="flex items-center justify-between gap-2.5">
+                  <span className="font-mono text-xs text-text-2">{s.id}</span>
+                  <span className={`inline-flex items-center justify-center min-w-[58px] h-[22px] px-2 rounded-full text-[11px] font-bold tracking-wide uppercase ${SEVERITY_STYLES[s.severity_level] ?? SEVERITY_STYLES.informational}`}>
+                    {s.severity_level}
+                  </span>
+                </div>
+                <div className="font-serif text-base leading-tight text-text whitespace-nowrap overflow-hidden text-ellipsis">
+                  {s.name}
+                </div>
+                <div className="text-[13px] text-text-2 whitespace-nowrap overflow-hidden text-ellipsis">
+                  {s.description.replace(/\n/g, ' ')}
+                </div>
+                <div className="mt-auto flex gap-2 flex-wrap">
+                  {s.protocols.map(p => (
+                    <span
+                      key={p}
+                      className={`inline-flex items-center h-[22px] px-2 rounded-full text-[11px] font-bold tracking-wide text-white ${PROTOCOL_BG[p] ?? 'bg-sev-info'}`}
+                    >
+                      {p}
+                    </span>
+                  ))}
+                </div>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

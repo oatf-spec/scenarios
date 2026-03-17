@@ -18,6 +18,8 @@ interface ScenarioIndex {
   phase_count: number;
   file: string;
   mappings: { framework: string; id: string; name: string }[];
+  tags: string[];
+  created: string;
 }
 
 function getProtocolFromMode(mode: string): string {
@@ -99,6 +101,10 @@ function extractMetadata(doc: any, filePath: string): ScenarioIndex {
       id: m.id,
       name: m.name ?? '',
     })),
+    tags: Array.isArray(attack.classification?.tags) ? attack.classification.tags : [],
+    created: attack.created instanceof Date
+      ? attack.created.toISOString().slice(0, 10)
+      : attack.created ? String(attack.created) : '',
   };
 }
 

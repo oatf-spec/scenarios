@@ -2,6 +2,11 @@
 import ScenarioGrid from '../components/ScenarioGrid/ScenarioGrid';
 import Analytics from '../components/Analytics.astro';
 import '../styles/global.css';
+import fs from 'node:fs';
+import path from 'node:path';
+
+const indexPath = path.resolve('public/library/index.json');
+const scenarios = JSON.parse(fs.readFileSync(indexPath, 'utf-8'));
 ---
 
 <html lang="en">
@@ -17,13 +22,30 @@ import '../styles/global.css';
     <meta property="og:description" content="Browse and explore security threat scenarios for AI agent protocols. Filter by protocol, severity, and attack category." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://oatf.dev/" />
+    <meta property="og:image" content="https://oatf.dev/og-image.png" />
 
     <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="OATF Scenario Registry" />
     <meta name="twitter:description" content="Browse and explore security threat scenarios for AI agent protocols." />
+    <meta name="twitter:image" content="https://oatf.dev/og-image.png" />
+
+    <!-- JSON-LD -->
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "OATF Scenario Registry",
+      "url": "https://oatf.dev",
+      "description": "Browse and explore security threat scenarios for AI agent protocols.",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://oatf.dev/?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    })} />
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate" type="application/rss+xml" title="OATF Scenarios" href="/feed.xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -82,7 +104,22 @@ import '../styles/global.css';
 
       <!-- Filter + Grid (React island) -->
       <main>
-        <ScenarioGrid client:load />
+        <h1 class="sr-only">OATF Scenario Registry</h1>
+        <ScenarioGrid client:load initialScenarios={scenarios} />
+        <noscript>
+          <div class="p-5 md:px-6 md:pb-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {scenarios.map((s: any) => (
+              <a href={`/${s.id}/`} class="bg-surface border border-border rounded-[6px] p-4 min-h-[148px] flex flex-col gap-3">
+                <div class="flex items-center justify-between gap-2.5">
+                  <span class="font-mono text-xs text-text-2">{s.id}</span>
+                  <span class="text-[11px] font-bold tracking-wide uppercase">{s.severity_level}</span>
+                </div>
+                <div class="font-serif text-base leading-tight text-text">{s.name}</div>
+                <div class="text-[13px] text-text-2">{s.description}</div>
+              </a>
+            ))}
+          </div>
+        </noscript>
       </main>
     </div>
   </body>

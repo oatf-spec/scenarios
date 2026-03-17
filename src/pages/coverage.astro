@@ -17,13 +17,16 @@ import '../styles/global.css';
     <meta property="og:description" content="Protocol coverage heatmap across mapped framework techniques for AI agent threat scenarios." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://oatf.dev/coverage/" />
+    <meta property="og:image" content="https://oatf.dev/og-image.png" />
 
     <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Coverage Matrix | OATF Scenarios" />
     <meta name="twitter:description" content="Protocol coverage heatmap across mapped framework techniques for AI agent threat scenarios." />
+    <meta name="twitter:image" content="https://oatf.dev/og-image.png" />
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate" type="application/rss+xml" title="OATF Scenarios" href="/feed.xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -80,6 +83,7 @@ import '../styles/global.css';
       </script>
 
       <main>
+        <h1 class="sr-only">Coverage Matrix</h1>
         <CoverageMatrix client:load />
       </main>
     </div>
