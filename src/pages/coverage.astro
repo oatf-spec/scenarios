@@ -1,5 +1,5 @@
 ---
-import ScenarioGrid from '../components/ScenarioGrid/ScenarioGrid';
+import CoverageMatrix from '../components/CoverageMatrix/CoverageMatrix';
 import Analytics from '../components/Analytics.astro';
 import '../styles/global.css';
 ---
@@ -8,20 +8,20 @@ import '../styles/global.css';
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>OATF Scenario Registry | Open Agent Threat Format</title>
-    <meta name="description" content="Browse and explore security threat scenarios for AI agent protocols. Filter by protocol, severity, and attack category." />
-    <link rel="canonical" href="https://oatf.dev/" />
+    <title>Coverage Matrix | OATF Scenarios</title>
+    <meta name="description" content="Protocol coverage heatmap across mapped framework techniques for AI agent threat scenarios." />
+    <link rel="canonical" href="https://oatf.dev/coverage/" />
 
     <!-- Open Graph -->
-    <meta property="og:title" content="OATF Scenario Registry | Open Agent Threat Format" />
-    <meta property="og:description" content="Browse and explore security threat scenarios for AI agent protocols. Filter by protocol, severity, and attack category." />
+    <meta property="og:title" content="Coverage Matrix | OATF Scenarios" />
+    <meta property="og:description" content="Protocol coverage heatmap across mapped framework techniques for AI agent threat scenarios." />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://oatf.dev/" />
+    <meta property="og:url" content="https://oatf.dev/coverage/" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="OATF Scenario Registry" />
-    <meta name="twitter:description" content="Browse and explore security threat scenarios for AI agent protocols." />
+    <meta name="twitter:title" content="Coverage Matrix | OATF Scenarios" />
+    <meta name="twitter:description" content="Protocol coverage heatmap across mapped framework techniques for AI agent threat scenarios." />
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -34,7 +34,6 @@ import '../styles/global.css';
   </head>
   <body>
     <div class="min-h-screen bg-bg">
-      <!-- Nav -->
       <header class="h-16 border-b border-border flex items-center justify-between px-6" style="background: rgba(15,17,23,0.96);">
         <div class="flex items-center gap-6">
           <a href="/" class="inline-flex items-center gap-3 text-[15px] font-semibold text-text">
@@ -46,9 +45,9 @@ import '../styles/global.css';
             <span>OATF Scenarios</span>
           </a>
           <nav class="hidden md:flex items-center gap-6">
-            <a class="text-sm text-text" href="/">Registry</a>
+            <a class="text-sm text-text-2 hover:text-text" href="/">Registry</a>
             <a class="text-sm text-text-2 hover:text-text" href="/editor">Editor</a>
-            <a class="text-sm text-text-2 hover:text-text" href="/coverage">Coverage</a>
+            <a class="text-sm text-text" href="/coverage">Coverage</a>
             <a class="text-sm text-text-2 hover:text-text" href="https://oatf.io" target="_blank" rel="noopener">About</a>
           </nav>
         </div>
@@ -68,9 +67,9 @@ import '../styles/global.css';
       </header>
       <div id="mobile-menu" class="hidden md:hidden border-b border-border" style="background: rgba(15,17,23,0.98);">
         <nav class="flex flex-col px-6 py-3 gap-1">
-          <a class="text-sm text-text py-2" href="/">Registry</a>
+          <a class="text-sm text-text-2 py-2" href="/">Registry</a>
           <a class="text-sm text-text-2 py-2" href="/editor">Editor</a>
-          <a class="text-sm text-text-2 py-2" href="/coverage">Coverage</a>
+          <a class="text-sm text-text py-2" href="/coverage">Coverage</a>
           <a class="text-sm text-text-2 py-2" href="https://oatf.io" target="_blank" rel="noopener">About</a>
         </nav>
       </div>
@@ -80,9 +79,8 @@ import '../styles/global.css';
         });
       </script>
 
-      <!-- Filter + Grid (React island) -->
       <main>
-        <ScenarioGrid client:load />
+        <CoverageMatrix client:load />
       </main>
     </div>
   </body>

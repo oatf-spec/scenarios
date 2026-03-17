@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 
 interface ScenarioEntry {
   id: string;
@@ -9,6 +9,7 @@ interface ScenarioEntry {
   interaction_models: string[];
   classification_category: string;
   impact: string[];
+  mappings: { framework: string; id: string; name: string }[];
   has_indicators: boolean;
   phase_count: number;
   file: string;
@@ -68,6 +69,10 @@ export default function ScenarioGrid() {
     return getUrlParams().get('impact') ?? '';
   });
 
+  const [mapping, setMapping] = useState<string>(() => {
+    return getUrlParams().get('mapping') ?? '';
+  });
+
   useEffect(() => {
     fetch('/library/index.json')
       .then(r => r.json())
@@ -85,8 +90,9 @@ export default function ScenarioGrid() {
     if (severity) params.set('severity', severity);
     if (category) params.set('category', category);
     if (impact) params.set('impact', impact);
+    if (mapping) params.set('mapping', mapping);
     setUrlParams(params);
-  }, [activeProtocols, severity, category, impact]);
+  }, [activeProtocols, severity, category, impact, mapping]);
 
   useEffect(() => { syncUrl(); }, [syncUrl]);
 
@@ -94,12 +100,24 @@ export default function ScenarioGrid() {
   const categories = [...new Set(scenarios.map(s => s.classification_category))].sort();
   const impacts = [...new Set(scenarios.flatMap(s => s.impact))].sort();
 
+  // Derive unique techniques for dropdown and chip labels
+  const techniques = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const s of scenarios) {
+      for (const m of s.mappings) {
+        if (!map.has(m.id)) map.set(m.id, m.name);
+      }
+    }
+    return new Map([...map].sort((a, b) => a[0].localeCompare(b[0])));
+  }, [scenarios]);
+
   // Filter scenarios
   const filtered = scenarios.filter(s => {
     if (activeProtocols.size > 0 && !s.protocols.some(p => activeProtocols.has(p))) return false;
     if (severity && s.severity_level !== severity) return false;
     if (category && s.classification_category !== category) return false;
     if (impact && !s.impact.includes(impact)) return false;
+    if (mapping && !s.mappings?.some(m => m.id === mapping)) return false;
     return true;
   });
 
@@ -129,8 +147,8 @@ export default function ScenarioGrid() {
       >
         {/* Desktop filters */}
         <div className="hidden md:grid items-center gap-4 px-6 py-4"
-             style={{ gridTemplateColumns: 'auto auto auto auto 1fr auto' }}>
-          {/* Protocol chips */}
+             style={{ gridTemplateColumns: 'auto auto auto auto auto 1fr auto' }}>
+          {/* Mapping chip + Protocol chips */}
           <div className="flex items-center gap-2">
             {ALL_PROTOCOLS.map(proto => (
               <button
@@ -212,6 +230,27 @@ export default function ScenarioGrid() {
             </select>
           </div>
 
+          {/* Technique dropdown */}
+          <div className="flex items-center gap-2">
+            <select
+              value={mapping}
+              onChange={e => setMapping(e.target.value)}
+              className="h-8 rounded-[6px] border border-border bg-surface text-text text-[13px] px-2.5 min-w-[164px] cursor-pointer"
+              style={{
+                appearance: 'none',
+                backgroundImage: `linear-gradient(45deg, transparent 50%, #a1a1aa 50%), linear-gradient(135deg, #a1a1aa 50%, transparent 50%)`,
+                backgroundPosition: 'calc(100% - 16px) 13px, calc(100% - 11px) 13px',
+                backgroundSize: '5px 5px, 5px 5px',
+                backgroundRepeat: 'no-repeat',
+              }}
+            >
+              <option value="">All techniques</option>
+              {[...techniques].map(([id, name]) => (
+                <option key={id} value={id}>{id}{name ? ` — ${name}` : ''}</option>
+              ))}
+            </select>
+          </div>
+
           {/* Result count */}
           <div className="justify-self-end text-[13px] text-text-2 whitespace-nowrap">
             {filtered.length !== scenarios.length
@@ -221,7 +260,8 @@ export default function ScenarioGrid() {
         </div>
 
         {/* Mobile filter row */}
-        <div className="md:hidden flex items-center justify-between gap-2 px-4 py-3">
+        <div className="md:hidden px-4 py-3 flex flex-col gap-2">
+          <div className="flex items-center justify-between gap-2">
           <span className="text-[13px] text-text-2">
             {filtered.length !== scenarios.length
               ? `${filtered.length} of ${scenarios.length} scenarios`
@@ -238,7 +278,11 @@ export default function ScenarioGrid() {
             impact={impact}
             setImpact={setImpact}
             impacts={impacts}
+            mapping={mapping}
+            setMapping={setMapping}
+            techniques={techniques}
           />
+          </div>
         </div>
       </section>
 
@@ -306,6 +350,8 @@ function MobileFilterButton({
   categories,
   impact, setImpact,
   impacts,
+  mapping, setMapping,
+  techniques,
 }: {
   activeProtocols: Set<string>;
   toggleProtocol: (p: string) => void;
@@ -317,9 +363,12 @@ function MobileFilterButton({
   impact: string;
   setImpact: (v: string) => void;
   impacts: string[];
+  mapping: string;
+  setMapping: (v: string) => void;
+  techniques: Map<string, string>;
 }) {
   const [open, setOpen] = useState(false);
-  const activeCount = activeProtocols.size + (severity ? 1 : 0) + (category ? 1 : 0) + (impact ? 1 : 0);
+  const activeCount = activeProtocols.size + (severity ? 1 : 0) + (category ? 1 : 0) + (impact ? 1 : 0) + (mapping ? 1 : 0);
 
   return (
     <div className="relative">
@@ -386,6 +435,19 @@ function MobileFilterButton({
               <option value="">All</option>
               {impacts.map(i => (
                 <option key={i} value={i}>{formatCategory(i)}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <div className="text-xs text-text-2 uppercase tracking-wider mb-2 font-semibold">Technique</div>
+            <select
+              value={mapping}
+              onChange={e => setMapping(e.target.value)}
+              className="w-full h-8 rounded-[6px] border border-border bg-[#20232d] text-text text-[13px] px-2"
+            >
+              <option value="">All</option>
+              {[...techniques].map(([id, name]) => (
+                <option key={id} value={id}>{id}{name ? ` — ${name}` : ''}</option>
               ))}
             </select>
           </div>
