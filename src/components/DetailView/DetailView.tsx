@@ -25,6 +25,7 @@ const FRAMEWORK_LABELS: Record<string, string> = {
   mitre_attack: 'MITRE ATT&CK',
   owasp_llm: 'OWASP LLM',
   owasp_mcp: 'OWASP MCP',
+  owasp_agentic: 'OWASP Agentic',
 };
 
 const FRAMEWORK_URLS: Record<string, (id: string) => string> = {
@@ -32,6 +33,7 @@ const FRAMEWORK_URLS: Record<string, (id: string) => string> = {
   mitre_attack: (id) => `https://attack.mitre.org/techniques/${id.replace('.', '/')}/`,
   owasp_llm: (id) => `https://genai.owasp.org/llmrisk/${id}/`,
   owasp_mcp: () => '#',
+  owasp_agentic: () => 'https://genai.owasp.org/agentic-security/',
 };
 
 function protocolLabel(mode: string): string {
