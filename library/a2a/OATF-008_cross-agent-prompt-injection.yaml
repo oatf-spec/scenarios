@@ -111,22 +111,5 @@ attack:
       pattern:
         regex: "(api_key|access_token|session_token|credentials|connection_string|context)"
 
-    - id: OATF-008-02
-      protocol: a2a
-      target: "arguments"
-      description: "Semantic detection of orchestrator forwarding sensitive context to an untrusted agent"
-      semantic:
-        intent: "Orchestrating agent is passing API keys, tokens, credentials, or sensitive session data to a remote agent during task delegation"
-        threshold: 0.7
-        examples:
-          positive:
-            - "passing context with API key sk-live-abc123"
-            - "including database credentials in task payload"
-            - "forwarding session tokens for authentication handshake"
-          negative:
-            - "delegating data analysis task with CSV file"
-            - "sending sales figures to analytics agent"
-            - "requesting Q1 trend analysis"
-
   correlation:
     logic: any
