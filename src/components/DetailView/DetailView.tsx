@@ -406,6 +406,32 @@ export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab, 
         </section>
       )}
 
+      {/* YouTube PoC embed — first YouTube link from references */}
+      {(() => {
+        const ytRef = (attack.references ?? []).find((ref: any) =>
+          /(?:youtube\.com\/watch\?v=|youtu\.be\/)/.test(ref.url)
+        );
+        if (!ytRef) return null;
+        const match = ytRef.url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/);
+        if (!match) return null;
+        return (
+          <section className="mt-12 flex flex-col gap-4">
+            <div className="text-[11px] text-text-2 uppercase tracking-[0.1em] font-bold">
+              Video demonstration
+            </div>
+            <div className="rounded-[6px] overflow-hidden border border-border" style={{ aspectRatio: '16/9' }}>
+              <iframe
+                src={`https://www.youtube-nocookie.com/embed/${match[1]}`}
+                title={ytRef.title || 'Video demonstration'}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full border-0"
+              />
+            </div>
+          </section>
+        );
+      })()}
+
       {/* YAML */}
       <section className="mt-12 flex flex-col gap-4">
         <div className="text-[11px] text-text-2 uppercase tracking-[0.1em] font-bold">YAML</div>
