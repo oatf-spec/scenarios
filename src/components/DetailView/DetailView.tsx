@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback, forwardRef } from 'react';
 import yaml from 'js-yaml';
 import { extractModel, type TimelineModel } from '../../lib/oatf-model';
 import { generateSequence } from '../../lib/oatf-sequence';
@@ -98,6 +98,70 @@ interface Props {
   onEdit?: () => void;
   relatedScenarios?: RelatedScenario[];
 }
+
+const MIN_ZOOM = 0.5;
+const MAX_ZOOM = 3;
+const DEFAULT_ZOOM = 1;
+
+const ZoomableDiagram = forwardRef<HTMLDivElement, { svg: string }>(
+  function ZoomableDiagram({ svg }, ref) {
+    const [zoom, setZoom] = useState(DEFAULT_ZOOM);
+    const [pan, setPan] = useState({ x: 0, y: 0 });
+    const dragging = useRef<{ startX: number; startY: number; panX: number; panY: number } | null>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    const handlePointerDown = useCallback((e: React.PointerEvent) => {
+      if (e.button !== 0) return;
+      dragging.current = { startX: e.clientX, startY: e.clientY, panX: pan.x, panY: pan.y };
+      (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    }, [pan]);
+
+    const handlePointerMove = useCallback((e: React.PointerEvent) => {
+      if (!dragging.current) return;
+      const dx = e.clientX - dragging.current.startX;
+      const dy = e.clientY - dragging.current.startY;
+      setPan({ x: dragging.current.panX + dx, y: dragging.current.panY + dy });
+    }, []);
+
+    const handlePointerUp = useCallback(() => {
+      dragging.current = null;
+    }, []);
+
+    const handleReset = useCallback(() => {
+      setZoom(DEFAULT_ZOOM);
+      setPan({ x: 0, y: 0 });
+    }, []);
+
+    return (
+      <div ref={ref} className="bg-surface-2 border border-border rounded-[6px] min-h-[200px] flex flex-col relative">
+        {svg && (
+          <div className="absolute top-2 right-2 z-10 flex items-center gap-1 bg-surface-1/80 backdrop-blur rounded-md border border-border px-1 py-0.5 text-xs text-text-2">
+            <button onClick={() => setZoom((z) => Math.max(MIN_ZOOM, z - 0.2))} className="px-1.5 py-0.5 hover:text-text-1 cursor-pointer" title="Zoom out">−</button>
+            <button onClick={handleReset} className="px-1 py-0.5 hover:text-text-1 cursor-pointer tabular-nums" title="Reset zoom">{Math.round(zoom * 100)}%</button>
+            <button onClick={() => setZoom((z) => Math.min(MAX_ZOOM, z + 0.2))} className="px-1.5 py-0.5 hover:text-text-1 cursor-pointer" title="Zoom in">+</button>
+          </div>
+        )}
+        <div
+          className="flex-1 overflow-hidden p-6 cursor-grab active:cursor-grabbing"
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          ref={containerRef}
+        >
+          {svg ? (
+            <div
+              className="[&>svg]:w-full [&>svg]:h-auto origin-top-left"
+              style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` }}
+              dangerouslySetInnerHTML={{ __html: svg }}
+            />
+          ) : (
+            <div className="text-text-2 text-sm flex items-center justify-center min-h-[200px]">Loading sequence diagram…</div>
+          )}
+        </div>
+      </div>
+    );
+  },
+);
 
 export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab, onEdit, relatedScenarios }: Props) {
   const [mermaidSvg, setMermaidSvg] = useState<string>('');
@@ -390,7 +454,7 @@ export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab, 
                           {m.id}
                         </a>
                       </td>
-                      <td className="py-3 px-2 text-[13px]">{m.name ?? '—'}</td>
+                      <td className="py-3 px-2 text-[13px]">{m.name ?? '-'}</td>
                       <td className="py-3 pl-2 text-[13px] text-text-2">
                         {m.relationship ?? 'primary'}
                       </td>
@@ -417,19 +481,7 @@ export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab, 
       {seqSource && (
         <section className="mt-12 flex flex-col gap-4">
           <SectionHeading id="message-flow">Message Flow</SectionHeading>
-          <div
-            ref={mermaidRef}
-            className="bg-surface-2 border border-border rounded-[6px] p-6 min-h-[200px] flex items-center justify-center overflow-x-auto"
-          >
-            {mermaidSvg ? (
-              <div
-                className="mx-auto max-w-4xl [&>svg]:w-full [&>svg]:h-auto"
-                dangerouslySetInnerHTML={{ __html: mermaidSvg }}
-              />
-            ) : (
-              <div className="text-text-2 text-sm">Loading sequence diagram…</div>
-            )}
-          </div>
+          <ZoomableDiagram ref={mermaidRef} svg={mermaidSvg} />
         </section>
       )}
 

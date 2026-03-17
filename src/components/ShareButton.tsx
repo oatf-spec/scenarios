@@ -22,7 +22,7 @@ export default function ShareButton({ yamlText, tab = 'editor', className }: Pro
     const url = `${base}/editor${tabParam}#yaml=${compressed}`;
 
     if (url.length > 15000) {
-      showStatus('URL too long — use Download instead');
+      showStatus('URL too long - use Download instead');
       return;
     }
 
@@ -33,7 +33,7 @@ export default function ShareButton({ yamlText, tab = 'editor', className }: Pro
         showStatus('Link copied!');
       }
     }).catch(() => {
-      showStatus('Failed to copy — check clipboard permissions');
+      showStatus('Failed to copy - check clipboard permissions');
     });
   }
 

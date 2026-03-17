@@ -260,7 +260,7 @@ export default function ScenarioGrid({ initialScenarios }: { initialScenarios?: 
             >
               <option value="">All techniques</option>
               {[...techniques].map(([id, name]) => (
-                <option key={id} value={id}>{id}{name ? ` — ${name}` : ''}</option>
+                <option key={id} value={id}>{id}{name ? ` - ${name}` : ''}</option>
               ))}
             </select>
           </div>
@@ -484,7 +484,7 @@ function MobileFilterButton({
             >
               <option value="">All</option>
               {[...techniques].map(([id, name]) => (
-                <option key={id} value={id}>{id}{name ? ` — ${name}` : ''}</option>
+                <option key={id} value={id}>{id}{name ? ` - ${name}` : ''}</option>
               ))}
             </select>
           </div>
