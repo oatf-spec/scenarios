@@ -20,8 +20,8 @@ attack:
     containing malicious instructions.
 
   severity:
-    level: critical
-    confidence: 75
+    level: high
+    confidence: 60
 
   impact:
     - behavior_manipulation

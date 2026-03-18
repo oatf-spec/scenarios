@@ -21,8 +21,8 @@ attack:
     execution authority to an untrusted party.
 
   severity:
-    level: critical
-    confidence: 70
+    level: high
+    confidence: 30
 
   impact:
     - behavior_manipulation

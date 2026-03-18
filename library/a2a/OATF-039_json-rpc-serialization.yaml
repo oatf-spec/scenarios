@@ -24,7 +24,7 @@ attack:
 
   severity:
     level: medium
-    confidence: 55
+    confidence: 25
 
   impact:
     - service_disruption

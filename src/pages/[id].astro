@@ -49,14 +49,17 @@ const breadcrumbSchema = {
 };
 const articleSchema = {
   "@context": "https://schema.org",
-  "@type": "CreativeWork",
+  "@type": "TechArticle",
   "name": `${id}: ${props.name}`,
   "description": props.description.replace(/\n/g, ' '),
   "url": canonicalUrl,
   "datePublished": props.created || undefined,
-  "keywords": props.tags ?? [],
+  "keywords": [...(props.tags ?? []), props.severity_level],
   "author": { "@type": "Organization", "name": "OATF Project" },
-  "inLanguage": "en"
+  "inLanguage": "en",
+  "proficiencyLevel": "Expert",
+  "about": props.protocols.map((p: string) => ({ "@type": "Thing", "name": p })),
+  "genre": "Threat Intelligence"
 };
 ---
 

@@ -26,6 +26,9 @@ export interface PhaseModel {
   injection_target: InjectionTarget;
   yaml_line_start: number;
   yaml_line_end: number;
+  on_enter_methods?: string[];
+  has_match_responses?: boolean;
+  tool_names?: string[];
 }
 
 export interface ActorModel {
@@ -33,6 +36,7 @@ export interface ActorModel {
   mode: string;
   protocol: string;
   phases: PhaseModel[];
+  is_adversarial?: boolean;
 }
 
 export interface CrossReference {
@@ -46,6 +50,8 @@ export interface TimelineModel {
   actors: ActorModel[];
   cross_references: CrossReference[];
   impact: string[];
+  tags?: string[];
+  user_intent?: string;
 }
 
 function protocolFromMode(mode: string): string {
@@ -187,6 +193,29 @@ function extractTrigger(trigger: any): TriggerSummary | null {
   };
 }
 
+function extractToolNames(state: any, mode: string): string[] {
+  if (!state) return [];
+  if (mode.startsWith('mcp_') && Array.isArray(state.tools)) {
+    return state.tools.map((t: any) => t.name).filter(Boolean);
+  }
+  if (mode.startsWith('a2a_') && state.agent_card?.skills) {
+    return state.agent_card.skills.map((s: any) => s.name).filter(Boolean);
+  }
+  return [];
+}
+
+function hasMatchResponses(state: any, mode: string): boolean {
+  if (!mode.startsWith('mcp_') || !state?.tools) return false;
+  for (const tool of state.tools) {
+    if (Array.isArray(tool.responses)) {
+      for (const r of tool.responses) {
+        if (r.match) return true;
+      }
+    }
+  }
+  return false;
+}
+
 function buildPhase(
   raw: any,
   mode: string,
@@ -194,6 +223,9 @@ function buildPhase(
   lineStart: number,
   lineEnd: number,
 ): PhaseModel {
+  const onEnterMethods = raw.on_enter?.map((a: any) => a.send?.method).filter(Boolean) ?? [];
+  const toolNames = extractToolNames(raw.state, mode);
+
   return {
     name: raw.name ?? 'default',
     description: raw.description ?? '',
@@ -206,6 +238,9 @@ function buildPhase(
     injection_target: detectInjection(raw.state, mode),
     yaml_line_start: lineStart,
     yaml_line_end: lineEnd,
+    on_enter_methods: onEnterMethods.length > 0 ? onEnterMethods : undefined,
+    has_match_responses: hasMatchResponses(raw.state, mode) || undefined,
+    tool_names: toolNames.length > 0 ? toolNames : undefined,
   };
 }
 
@@ -264,6 +299,29 @@ function findActorBoundary(yamlText: string, actorName: string, after: number): 
   return lines.length;
 }
 
+function extractUserIntent(execution: any): string | undefined {
+  // AG-UI: first user message content
+  if (execution.mode?.startsWith('ag_ui_') && execution.state?.run_agent_input?.messages) {
+    const userMsg = execution.state.run_agent_input.messages.find((m: any) => m.role === 'user');
+    if (userMsg?.content) return truncate(String(userMsg.content).trim(), 40);
+  }
+  // Multi-actor: check first actor
+  if (execution.actors?.[0]) {
+    const actor = execution.actors[0];
+    if (actor.mode?.startsWith('ag_ui_')) {
+      const state = actor.phases?.[0]?.state;
+      const userMsg = state?.run_agent_input?.messages?.find((m: any) => m.role === 'user');
+      if (userMsg?.content) return truncate(String(userMsg.content).trim(), 40);
+    }
+  }
+  // Fallback: first tool name from single-phase/multi-phase
+  const state = execution.state ?? execution.phases?.[0]?.state;
+  if (state?.tools?.[0]?.name) {
+    return `use ${state.tools[0].name}`;
+  }
+  return undefined;
+}
+
 export function extractModel(doc: any, yamlText?: string): TimelineModel {
   const empty: TimelineModel = { actors: [], cross_references: [], impact: [] };
 
@@ -273,6 +331,8 @@ export function extractModel(doc: any, yamlText?: string): TimelineModel {
 
     const execution = attack.execution;
     if (!execution) return empty;
+
+    const userIntent = extractUserIntent(execution);
 
     // Multi-actor form
     if (execution.actors && Array.isArray(execution.actors)) {
@@ -310,8 +370,14 @@ export function extractModel(doc: any, yamlText?: string): TimelineModel {
         };
       });
 
+      // Mark actors with injection as adversarial
+      for (const actor of actors) {
+        actor.is_adversarial = actor.phases.some((p) => p.injection_target !== null);
+      }
+
       const impact = Array.isArray(attack.impact) ? attack.impact : [];
-      return { actors, cross_references: [], impact };
+      const tags = attack.classification?.tags ?? [];
+      return { actors, cross_references: [], impact, tags: tags.length ? tags : undefined, user_intent: userIntent };
     }
 
     // Multi-phase form
@@ -328,7 +394,9 @@ export function extractModel(doc: any, yamlText?: string): TimelineModel {
         return buildPhase(p, mode, isTerminal, lineRanges[i][0], lineRanges[i][1]);
       });
 
+      const hasInjection = phases.some((p: PhaseModel) => p.injection_target !== null);
       const impact = Array.isArray(attack.impact) ? attack.impact : [];
+      const tags = attack.classification?.tags ?? [];
       return {
         actors: [
           {
@@ -336,10 +404,13 @@ export function extractModel(doc: any, yamlText?: string): TimelineModel {
             mode,
             protocol: protocolFromMode(mode),
             phases,
+            is_adversarial: hasInjection || undefined,
           },
         ],
         cross_references: [],
         impact,
+        tags: tags.length ? tags : undefined,
+        user_intent: userIntent,
       };
     }
 
@@ -362,6 +433,7 @@ export function extractModel(doc: any, yamlText?: string): TimelineModel {
       );
 
       const impact = Array.isArray(attack.impact) ? attack.impact : [];
+      const tags = attack.classification?.tags ?? [];
       return {
         actors: [
           {
@@ -369,10 +441,13 @@ export function extractModel(doc: any, yamlText?: string): TimelineModel {
             mode,
             protocol: protocolFromMode(mode),
             phases: [phase],
+            is_adversarial: phase.injection_target !== null || undefined,
           },
         ],
         cross_references: [],
         impact,
+        tags: tags.length ? tags : undefined,
+        user_intent: userIntent,
       };
     }
 

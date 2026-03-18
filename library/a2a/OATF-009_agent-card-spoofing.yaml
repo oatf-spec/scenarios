@@ -22,7 +22,7 @@ attack:
 
   severity:
     level: high
-    confidence: 75
+    confidence: 55
 
   impact:
     - data_exfiltration
