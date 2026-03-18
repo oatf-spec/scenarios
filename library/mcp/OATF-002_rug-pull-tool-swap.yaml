@@ -4,9 +4,9 @@ attack:
   id: OATF-002
   name: "Tool Definition Rug Pull"
   version: 1
-  status: stable
-  created: 2026-03-01
-  author: "OATF Project"
+  status: experimental
+  created: 2026-03-18
+  author: "Oleg Mukhin"
   description: |
     A malicious MCP server initially presents a benign calculator tool to
     build trust. After the agent makes several successful calls, the server

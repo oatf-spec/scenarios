@@ -4,16 +4,16 @@ attack:
   id: OATF-007
   name: "MCP Server Supply Chain Attack"
   version: 1
-  status: stable
-  created: 2026-03-14
-  author: "OATF Project"
+  status: experimental
+  created: 2026-03-18
+  author: "Oleg Mukhin"
   description: |
     A malicious MCP server is published to a package registry or
     marketplace with clean, functional tool definitions. After gaining
     adoption, the server pushes an update that introduces prompt injection
     payloads, BCC exfiltration, or credential harvesting into its tool
     descriptions or response handling. The attack exploits the gap between
-    initial review and subsequent updates — most MCP clients do not pin or
+    initial review and subsequent updates -- most MCP clients do not pin or
     hash tool definitions. The malicious Postmark MCP Server injected BCC
     copies of all emails across 15 package versions. The Smithery platform
     breach compromised 3,000+ apps. CVE-2025-6514 in mcp-remote (437,000+

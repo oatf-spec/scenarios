@@ -4,9 +4,9 @@ attack:
   id: OATF-004
   name: "Tool Response Injection (Indirect Prompt Injection)"
   version: 1
-  status: stable
-  created: 2026-03-14
-  author: "OATF Project"
+  status: experimental
+  created: 2026-03-18
+  author: "Oleg Mukhin"
   description: |
     A malicious MCP server returns tool responses containing embedded prompt
     injection payloads. When an agent calls a tool that fetches external data
@@ -57,7 +57,7 @@ attack:
       description: "Invariant Labs demonstration against official GitHub MCP server where a malicious issue exfiltrated private repo data"
     - url: "https://invariantlabs.ai/blog/toxic-flow-analysis"
       title: "Toxic Flow Analysis"
-      description: "Introduction of Toxic Agent Flows concept — architectural vulnerabilities that cannot be patched by any single component"
+      description: "Introduction of Toxic Agent Flows concept -- architectural vulnerabilities that cannot be patched by any single component"
     - url: "https://www.cyberark.com/resources/threat-research-blog/poison-everywhere-no-output-from-your-mcp-server-is-safe"
       title: "Poison Everywhere: No Output from Your MCP Server Is Safe"
       description: "CyberArk Labs showing that tool error messages can contain injections exploiting agent trust in tool responses"
