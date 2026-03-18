@@ -136,6 +136,64 @@ import '../styles/global.css';
             </ul>
           </section>
 
+          <section id="confidence-scoring">
+            <h2 class="text-lg font-semibold text-text mb-3">Confidence scoring</h2>
+            <p class="mb-4">
+              Each scenario carries a confidence score (0-100) representing how confident the author is in the assigned
+              severity level, following the <strong class="text-text">STIX confidence scale</strong>. A high-severity attack
+              with confidence 30 means the author believes it could be high severity but has limited evidence. A high-severity
+              attack with confidence 90 means the assessment is well-supported. Defaults to 50 (neutral) when omitted.
+            </p>
+            <div class="overflow-x-auto mb-4">
+              <table class="w-full border-collapse text-sm">
+                <thead>
+                  <tr class="border-b border-border">
+                    <th class="text-left py-2 pr-3 text-text font-semibold">Factor</th>
+                    <th class="text-left py-2 px-3 text-text font-semibold">Range</th>
+                    <th class="text-left py-2 pl-3 text-text font-semibold">Tiers</th>
+                  </tr>
+                </thead>
+                <tbody class="text-text-2">
+                  <tr class="border-b border-border">
+                    <td class="py-2 pr-3 text-text font-medium align-top">Impact evidence</td>
+                    <td class="py-2 px-3 align-top">0-25</td>
+                    <td class="py-2 pl-3">Impact at this severity confirmed by CVE or peer-reviewed publication (+25), Conference demo (+20), Technical writeup with working PoC (+15), Vendor analysis or analogous attack class (+10), Theoretical extrapolation (+5)</td>
+                  </tr>
+                  <tr class="border-b border-border">
+                    <td class="py-2 pr-3 text-text font-medium align-top">Reproducibility</td>
+                    <td class="py-2 px-3 align-top">0-25</td>
+                    <td class="py-2 pl-3">Impact at this severity independently confirmed by 2+ groups (+25), Documented PoC with public code (+15), Claimed reproduction without public artefacts (+10), No reproduction (+5)</td>
+                  </tr>
+                  <tr class="border-b border-border">
+                    <td class="py-2 pr-3 text-text font-medium align-top">Real-world observation</td>
+                    <td class="py-2 px-3 align-top">0-20</td>
+                    <td class="py-2 pl-3">Confirmed exploitation producing the claimed impact (+20), Red team or controlled engagement (+12), Lab-only (+5), No observation (+0)</td>
+                  </tr>
+                  <tr class="border-b border-border">
+                    <td class="py-2 pr-3 text-text font-medium align-top">Quantitative support</td>
+                    <td class="py-2 px-3 align-top">0-15</td>
+                    <td class="py-2 pl-3">Published success rates or measured impact data (+15), Qualitative assessment only (+5), None (+0)</td>
+                  </tr>
+                  <tr class="border-b border-border">
+                    <td class="py-2 pr-3 text-text font-medium align-top">Temporal applicability</td>
+                    <td class="py-2 px-3 align-top">0-15</td>
+                    <td class="py-2 pl-3">Affects current versions, no mitigations deployed (+15), Recent but patched or partial mitigations (+8), Historical only (+3)</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="text-sm">
+              <strong class="text-text">Note:</strong> The 0 floor on real-world observation means a scenario can score up to
+              80/100 with zero real-world exploitation. This is by design -- novel protocol-level attacks that haven't been
+              weaponised yet can still carry high confidence if the impact evidence and reproducibility are strong. A high
+              confidence score should not be interpreted as implying confirmed malicious use in the wild.
+            </p>
+            <p class="text-sm mt-2">
+              For the full contributor-facing rubric with worked examples, see
+              <a href="https://github.com/oatf-spec/scenarios/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener" class="text-blue-400 hover:text-blue-300">CONTRIBUTING.md</a>.
+            </p>
+          </section>
+
           <section>
             <h2 class="text-lg font-semibold text-text mb-3">Who is this for?</h2>
             <ul class="list-disc list-inside flex flex-col gap-2">

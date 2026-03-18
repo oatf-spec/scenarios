@@ -300,7 +300,7 @@ export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab, 
                 <a
                   href="/about#confidence-scoring"
                   className="px-1.5 h-full flex items-center bg-black/20 text-white/70 font-semibold no-underline hover:text-white/90"
-                  title="Confidence scored on 5 factors: evidence basis, reproducibility, production observation, quantitative data, temporal relevance. See About page for full rubric."
+                  title="Author confidence in the assigned severity level (0-100, STIX scale). Higher values mean the severity assessment is better supported by evidence."
                 >{attack.severity.confidence}%</a>
               )}
             </span>

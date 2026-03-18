@@ -22,7 +22,7 @@ attack:
 
   severity:
     level: critical
-    confidence: 75
+    confidence: 70
 
   impact:
     - unauthorized_actions

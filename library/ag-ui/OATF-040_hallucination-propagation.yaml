@@ -23,7 +23,7 @@ attack:
 
   severity:
     level: medium
-    confidence: 30
+    confidence: 25
 
   impact:
     - data_tampering

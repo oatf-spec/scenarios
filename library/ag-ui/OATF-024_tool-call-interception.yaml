@@ -21,7 +21,7 @@ attack:
     execution authority to an untrusted party.
 
   severity:
-    level: critical
+    level: high
     confidence: 30
 
   impact:

@@ -22,7 +22,7 @@ attack:
     safety guardrails can craft injections specifically to bypass them.
 
   severity:
-    level: high
+    level: medium
     confidence: 60
 
   impact:

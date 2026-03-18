@@ -20,8 +20,8 @@ attack:
     compromised intermediaries, or misconfigured mTLS.
 
   severity:
-    level: high
-    confidence: 35
+    level: medium
+    confidence: 25
 
   impact:
     - behavior_manipulation

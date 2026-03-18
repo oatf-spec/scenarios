@@ -20,7 +20,7 @@ attack:
     containing malicious instructions.
 
   severity:
-    level: critical
+    level: high
     confidence: 60
 
   impact:
