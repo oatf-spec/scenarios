@@ -6,7 +6,7 @@ attack:
   version: 1
   status: draft
   created: 2026-03-18
-  author: "OATF Project"
+  author: "Oleg Mukhin"
   description: |
     A2A Agent Cards are published at the well-known path
     /.well-known/agent.json and are typically accessible without
@@ -14,7 +14,7 @@ attack:
     including internal service URLs, API version numbers, capability lists,
     authentication requirements, supported input/output modes, and skill
     descriptions that reveal business logic. This information enables
-    reconnaissance — an attacker can enumerate an organization's agent
+    reconnaissance -- an attacker can enumerate an organization's agent
     infrastructure, identify high-value targets (agents with financial or
     administrative capabilities), and craft targeted attacks based on known
     skill descriptions. Semgrep's analysis notes that Agent Card enumeration

@@ -6,7 +6,7 @@ attack:
   version: 1
   status: draft
   created: 2026-03-18
-  author: "OATF Project"
+  author: "Oleg Mukhin"
   description: |
     A2A supports push notifications via webhooks for asynchronous task updates.
     An agent that registers a webhook URL receives POST requests when tasks

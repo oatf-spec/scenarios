@@ -5,8 +5,8 @@ attack:
   name: "Cross-Agent Prompt Injection"
   version: 1
   status: experimental
-  created: 2026-03-14
-  author: "OATF Project"
+  created: 2026-03-18
+  author: "Oleg Mukhin"
   description: |
     A malicious A2A agent embeds prompt injection payloads in its Agent
     Card skill descriptions, examples, or response messages. When an
@@ -32,7 +32,7 @@ attack:
     category: capability_poisoning
     mappings:
       - framework: atlas
-        id: AML.T0051.001
+        id: AML.T0051.002
         name: "Indirect Prompt Injection"
       - framework: atlas
         id: AML.T0058

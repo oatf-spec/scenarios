@@ -6,12 +6,12 @@ attack:
   version: 1
   status: draft
   created: 2026-03-18
-  author: "OATF Project"
+  author: "Oleg Mukhin"
   description: |
     AG-UI uses Server-Sent Events (SSE) or WebSocket streams for real-time
     communication between agents and frontends. An adversary-in-the-middle who
     can intercept or inject into the event stream can manipulate the agent's
-    output in transit — altering text deltas, injecting fabricated tool calls,
+    output in transit -- altering text deltas, injecting fabricated tool calls,
     or suppressing agent warnings before they reach the user. Because SSE is
     a text-based protocol without built-in message authentication, any proxy
     or middleware in the path can modify events transparently. The attack is

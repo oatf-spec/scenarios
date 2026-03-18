@@ -6,13 +6,13 @@ attack:
   version: 1
   status: draft
   created: 2026-03-18
-  author: "OATF Project"
+  author: "Oleg Mukhin"
   description: |
     When MCP, A2A, and AG-UI operate together, no cross-protocol security
     validation exists at the boundary seams. A poisoned MCP tool response
     contains instructions that hijack agent control flow, causing it to
     delegate to a malicious A2A agent, whose results then propagate through
-    AG-UI to the user — potentially executing XSS or exfiltrating data through
+    AG-UI to the user -- potentially executing XSS or exfiltrating data through
     the rendered frontend. Each protocol hop crosses a trust boundary without
     validation. Unit 42 documented "Agent Session Smuggling" where a malicious
     A2A remote agent misuses an ongoing stateful session to inject instructions

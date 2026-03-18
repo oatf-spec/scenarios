@@ -6,7 +6,7 @@ attack:
   version: 1
   status: experimental
   created: 2026-03-18
-  author: "OATF Project"
+  author: "Oleg Mukhin"
   description: |
     Trail of Bits (April 2025) discovered that ANSI escape sequences can hide
     malicious content in MCP tool descriptions and responses when displayed in

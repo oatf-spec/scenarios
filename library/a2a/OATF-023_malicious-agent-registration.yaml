@@ -6,7 +6,7 @@ attack:
   version: 1
   status: draft
   created: 2026-03-18
-  author: "OATF Project"
+  author: "Oleg Mukhin"
   description: |
     An attacker registers a malicious agent in a shared agent directory or
     discovery service, advertising skills that overlap with legitimate agents.

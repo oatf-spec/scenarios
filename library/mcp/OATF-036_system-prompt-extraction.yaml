@@ -6,7 +6,7 @@ attack:
   version: 1
   status: experimental
   created: 2026-03-18
-  author: "OATF Project"
+  author: "Oleg Mukhin"
   description: |
     A malicious MCP tool or AG-UI injection extracts the agent's system prompt,
     revealing internal instructions, safety guardrails, tool configurations,
@@ -18,7 +18,7 @@ attack:
     and indirect methods where tool responses contain instructions to include
     the system prompt in the next tool call. HiddenLayer demonstrated system
     prompt extraction through MCP tool parameter abuse. Once extracted, the
-    system prompt enables tailored attacks — an attacker who knows the exact
+    system prompt enables tailored attacks -- an attacker who knows the exact
     safety guardrails can craft injections specifically to bypass them.
 
   severity:

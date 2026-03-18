@@ -6,12 +6,12 @@ attack:
   version: 1
   status: experimental
   created: 2026-03-18
-  author: "OATF Project"
+  author: "Oleg Mukhin"
   description: |
     MCP tools that accept URLs or resource URIs without validation become
     Server-Side Request Forgery (SSRF) vectors. When an agent passes a
     user-supplied or injection-supplied URL to an MCP tool, the server fetches
-    it from its own network context — potentially reaching internal services,
+    it from its own network context -- potentially reaching internal services,
     cloud metadata endpoints, or admin interfaces that are not accessible from
     the client. Snyk Labs demonstrated that the markdownify-mcp server's
     toMarkdown() function blindly fetches any URL, including
@@ -51,6 +51,9 @@ attack:
         id: T1210
         name: "Exploitation of Remote Services"
         relationship: related
+      - framework: owasp_llm
+        id: LLM01
+        name: "Prompt Injection"
       - framework: owasp_llm
         id: LLM05
         name: "Improper Output Handling"

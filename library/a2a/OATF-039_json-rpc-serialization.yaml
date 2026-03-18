@@ -6,7 +6,7 @@ attack:
   version: 1
   status: draft
   created: 2026-03-18
-  author: "OATF Project"
+  author: "Oleg Mukhin"
   description: |
     A2A uses JSON-RPC 2.0 for message transport. Malformed or adversarial
     JSON-RPC messages can exploit parsing vulnerabilities in agent
@@ -86,7 +86,7 @@ attack:
               privileged: true
           nested_depth: "Object nested 1000+ levels to trigger stack overflow"
           duplicate_key_1: "legitimate value"
-          duplicate_key_2: "malicious value — last key wins in most parsers"
+          duplicate_key_2: "malicious value -- last key wins in most parsers"
 
   indicators:
     - id: OATF-039-01

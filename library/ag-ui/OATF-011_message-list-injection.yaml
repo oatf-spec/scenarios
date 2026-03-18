@@ -5,8 +5,8 @@ attack:
   name: "AG-UI Message List Injection"
   version: 1
   status: experimental
-  created: 2026-03-14
-  author: "OATF Project"
+  created: 2026-03-18
+  author: "Oleg Mukhin"
   description: |
     A malicious AG-UI client injects fabricated messages into the
     conversation history sent to the agent via the RunAgentInput message
@@ -33,7 +33,7 @@ attack:
     category: capability_poisoning
     mappings:
       - framework: atlas
-        id: AML.T0051.000
+        id: AML.T0051.001
         name: "LLM Prompt Injection: Direct"
       - framework: atlas
         id: AML.T0058

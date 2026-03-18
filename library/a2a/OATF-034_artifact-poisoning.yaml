@@ -6,16 +6,16 @@ attack:
   version: 1
   status: draft
   created: 2026-03-18
-  author: "OATF Project"
+  author: "Oleg Mukhin"
   description: |
-    A2A allows agents to exchange artifacts — structured data objects like
-    files, images, or serialized data — as part of task results. A malicious
+    A2A allows agents to exchange artifacts -- structured data objects like
+    files, images, or serialized data -- as part of task results. A malicious
     agent can return poisoned artifacts that contain prompt injection payloads,
     malware, or manipulated data. When the receiving agent or orchestrator
     processes the artifact (e.g., parsing a CSV, rendering an image, executing
     code from a notebook), the embedded payload activates. Artifacts are
     particularly dangerous because they are processed by downstream tools and
-    agents with implicit trust — the receiving agent assumes artifacts from a
+    agents with implicit trust -- the receiving agent assumes artifacts from a
     delegated task are safe. This creates a tainted data flow where malicious
     content bypasses the LLM's safety filters by being embedded in structured
     data rather than natural language.
@@ -34,10 +34,6 @@ attack:
       - framework: atlas
         id: AML.T0058
         name: "AI Agent Context Poisoning"
-      - framework: atlas
-        id: AML.T0020
-        name: "Poison Training Data"
-        relationship: related
       - framework: mitre_attack
         id: T1080
         name: "Taint Shared Content"

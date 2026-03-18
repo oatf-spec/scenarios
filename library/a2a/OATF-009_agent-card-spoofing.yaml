@@ -5,8 +5,8 @@ attack:
   name: "Agent Card Spoofing / Impersonation"
   version: 1
   status: experimental
-  created: 2026-03-14
-  author: "OATF Project"
+  created: 2026-03-18
+  author: "Oleg Mukhin"
   description: |
     An attacker publishes a spoofed A2A Agent Card that impersonates a
     legitimate, trusted agent. The fake card advertises identical or
@@ -32,8 +32,8 @@ attack:
     category: capability_poisoning
     mappings:
       - framework: atlas
-        id: AML.T0005
-        name: "Create Proxy ML Model"
+        id: AML.T0043
+        name: "Craft Adversarial Data"
       - framework: mitre_attack
         id: T1036
         name: "Masquerading"
@@ -140,9 +140,9 @@ attack:
     - id: OATF-009-03
       protocol: a2a
       target: "arguments"
-      description: "Orchestrator delegated a task to an agent whose domain does not match the expected legitimate domain pattern"
+      description: "Orchestrator delegated a task to an agent whose domain contains common typosquatting patterns (letter/digit substitution)"
       pattern:
-        regex: "https?://[\\w.-]*[0o][\\w.-]*\\.(com|net|org|io)|https?://[\\w.-]*-[\\w.-]*\\.(com|net|org|io)"
+        regex: "(rep0rt|f1nance|adm1n|acc0unt|paym3nt|s3cure|0auth|cr3dit)"
 
   correlation:
     logic: any

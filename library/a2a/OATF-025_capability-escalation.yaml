@@ -6,7 +6,7 @@ attack:
   version: 1
   status: draft
   created: 2026-03-18
-  author: "OATF Project"
+  author: "Oleg Mukhin"
   description: |
     A2A agents self-declare their capabilities in Agent Cards with no external
     verification. An agent can claim capabilities beyond what it actually
@@ -14,7 +14,7 @@ attack:
     orchestrator grants access based on self-declared capabilities, a malicious
     agent can escalate from a narrow initial scope (e.g., "read analytics") to
     broad access (e.g., "manage all databases"). Token-scoped authorization
-    compounds the risk — if the orchestrator issues tokens based on declared
+    compounds the risk -- if the orchestrator issues tokens based on declared
     capabilities, capability inflation directly translates to privilege
     escalation. A2A's lack of capability attestation means there is no
     mechanism to verify that an agent actually possesses the capabilities it

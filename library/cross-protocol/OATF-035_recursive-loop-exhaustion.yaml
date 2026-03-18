@@ -6,7 +6,7 @@ attack:
   version: 1
   status: experimental
   created: 2026-03-18
-  author: "OATF Project"
+  author: "Oleg Mukhin"
   description: |
     Crafted inputs trigger infinite agent delegation cycles: Agent A delegates
     to Agent B, which delegates back to Agent A, creating an unbounded loop.

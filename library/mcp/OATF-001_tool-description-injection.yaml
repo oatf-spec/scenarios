@@ -5,8 +5,8 @@ attack:
   name: "Tool Description Prompt Injection"
   version: 1
   status: experimental
-  created: 2026-03-01
-  author: "OATF Project"
+  created: 2026-03-18
+  author: "Oleg Mukhin"
   description: |
     A malicious MCP server embeds prompt injection payload in a tool's
     description field. When the agent retrieves the tool list, the injected
@@ -51,8 +51,8 @@ attack:
         id: LLM03
         name: "Supply Chain Vulnerabilities"
       - framework: owasp_llm
-        id: LLM07
-        name: "Insecure Plugin Design"
+        id: LLM06
+        name: "Excessive Agency"
     tags:
       - injection
       - tool-description

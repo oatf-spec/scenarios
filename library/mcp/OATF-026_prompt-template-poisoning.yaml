@@ -6,9 +6,9 @@ attack:
   version: 1
   status: draft
   created: 2026-03-18
-  author: "OATF Project"
+  author: "Oleg Mukhin"
   description: |
-    MCP servers can expose prompt templates — pre-built prompt structures that
+    MCP servers can expose prompt templates -- pre-built prompt structures that
     agents use for common tasks. A malicious MCP server publishes a prompt
     template that appears helpful (e.g., "Summarize this document") but
     contains hidden injection payloads within the template structure. When the
