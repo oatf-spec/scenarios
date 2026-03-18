@@ -293,16 +293,9 @@ export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab, 
         {/* Badge bar + actions */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-2 flex-wrap">
-            {/* Severity + confidence compound pill */}
-            <span className={`inline-flex items-center h-[22px] rounded-full overflow-hidden text-[11px] font-bold tracking-wide uppercase ${sevStyle}`}>
-              <span className="px-2 h-full flex items-center">{attack.severity?.level}</span>
-              {attack.severity?.confidence != null && (
-                <a
-                  href="/about#confidence-scoring"
-                  className="px-1.5 h-full flex items-center bg-black/20 text-white/70 font-semibold no-underline hover:text-white/90"
-                  title="Confidence scored on 5 factors: evidence basis, reproducibility, production observation, quantitative data, temporal relevance. See About page for full rubric."
-                >{attack.severity.confidence}%</a>
-              )}
+            {/* Severity pill */}
+            <span className={`inline-flex items-center h-[22px] px-2 rounded-full text-[11px] font-bold tracking-wide uppercase ${sevStyle}`}>
+              {attack.severity?.level}
             </span>
             {protocols.map((p) => (
               <span
@@ -317,6 +310,17 @@ export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab, 
                 {attack.status && <span className="px-2 h-full flex items-center text-text">{attack.status}</span>}
                 {attack.version && <span className={`px-1.5 h-full flex items-center text-text-2${attack.status ? ' bg-black/20' : ''}`}>v{attack.version}</span>}
               </span>
+            )}
+            {/* Confidence pill (separate axis: evidence quality, not impact) */}
+            {attack.severity?.confidence != null && (
+              <a
+                href="/about#confidence-scoring"
+                className="inline-flex items-center h-[22px] rounded-full overflow-hidden text-[11px] font-semibold bg-[#2a2d37] no-underline"
+                title="Confidence: evidence quality score (0-100). Scored on 5 factors: evidence basis, reproducibility, production observation, quantitative data, temporal relevance."
+              >
+                <span className="px-2 h-full flex items-center text-text">confidence</span>
+                <span className="px-1.5 h-full flex items-center text-text-2 bg-black/20">{attack.severity.confidence}%</span>
+              </a>
             )}
           </div>
           <div className="flex gap-2">
