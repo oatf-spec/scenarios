@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useCallback, forwardRef } from 'react';
 import yaml from 'js-yaml';
+import DOMPurify from 'dompurify';
 import { extractModel, type TimelineModel } from '../../lib/oatf-model';
 import { generateSequence } from '../../lib/oatf-sequence';
 import { highlightYaml } from '../../lib/yaml-highlight';
@@ -150,7 +151,7 @@ const ZoomableDiagram = forwardRef<HTMLDivElement, { svg: string }>(
         >
           {svg ? (
             <div
-              className="[&>svg]:w-full [&>svg]:h-auto origin-top-left"
+              className="[&>svg]:max-w-full [&>svg]:h-auto [&>svg]:mx-auto origin-top-left"
               style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` }}
               dangerouslySetInnerHTML={{ __html: svg }}
             />
@@ -189,6 +190,7 @@ export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab, 
       if (cancelled) return;
       mermaid.default.initialize({
         startOnLoad: false,
+        securityLevel: 'strict',
         theme: 'dark',
         themeVariables: {
           darkMode: true,
@@ -212,7 +214,10 @@ export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab, 
           `mermaid-${scenarioId ?? 'view'}`,
           seqSource,
         );
-        if (!cancelled) setMermaidSvg(svg);
+        const clean = DOMPurify.sanitize(svg, {
+          USE_PROFILES: { svg: true, svgFilters: true },
+        });
+        if (!cancelled) setMermaidSvg(clean);
       } catch {
         // Mermaid render error — skip
       }
@@ -292,7 +297,11 @@ export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab, 
             <span className={`inline-flex items-center h-[22px] rounded-full overflow-hidden text-[11px] font-bold tracking-wide uppercase ${sevStyle}`}>
               <span className="px-2 h-full flex items-center">{attack.severity?.level}</span>
               {attack.severity?.confidence != null && (
-                <span className="px-1.5 h-full flex items-center bg-black/20 text-white/70 font-semibold">{attack.severity.confidence}%</span>
+                <a
+                  href="/about#confidence-scoring"
+                  className="px-1.5 h-full flex items-center bg-black/20 text-white/70 font-semibold no-underline hover:text-white/90"
+                  title="Confidence scored on 5 factors: evidence basis, reproducibility, production observation, quantitative data, temporal relevance. See About page for full rubric."
+                >{attack.severity.confidence}%</a>
               )}
             </span>
             {protocols.map((p) => (
