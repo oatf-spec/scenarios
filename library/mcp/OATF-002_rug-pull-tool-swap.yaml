@@ -4,7 +4,7 @@ attack:
   id: OATF-002
   name: "Tool Definition Rug Pull"
   version: 1
-  status: stable
+  status: experimental
   created: 2026-03-01
   author: "OATF Project"
   description: |

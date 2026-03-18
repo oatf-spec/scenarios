@@ -4,7 +4,7 @@ attack:
   id: OATF-001
   name: "Tool Description Prompt Injection"
   version: 1
-  status: stable
+  status: experimental
   created: 2026-03-01
   author: "OATF Project"
   description: |

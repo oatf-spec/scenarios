@@ -4,7 +4,7 @@ attack:
   id: OATF-006
   name: "Data Exfiltration via Tool Calls"
   version: 1
-  status: stable
+  status: experimental
   created: 2026-03-14
   author: "OATF Project"
   description: |

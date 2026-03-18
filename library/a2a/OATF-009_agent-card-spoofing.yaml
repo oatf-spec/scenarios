@@ -4,7 +4,7 @@ attack:
   id: OATF-009
   name: "Agent Card Spoofing / Impersonation"
   version: 1
-  status: stable
+  status: experimental
   created: 2026-03-14
   author: "OATF Project"
   description: |

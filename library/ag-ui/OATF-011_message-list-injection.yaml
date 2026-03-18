@@ -4,7 +4,7 @@ attack:
   id: OATF-011
   name: "AG-UI Message List Injection"
   version: 1
-  status: stable
+  status: experimental
   created: 2026-03-14
   author: "OATF Project"
   description: |

@@ -4,7 +4,7 @@ attack:
   id: OATF-004
   name: "Tool Response Injection (Indirect Prompt Injection)"
   version: 1
-  status: stable
+  status: experimental
   created: 2026-03-14
   author: "OATF Project"
   description: |
