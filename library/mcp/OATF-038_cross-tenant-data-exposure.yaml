@@ -22,7 +22,7 @@ attack:
 
   severity:
     level: high
-    confidence: 75
+    confidence: 45
 
   impact:
     - information_disclosure

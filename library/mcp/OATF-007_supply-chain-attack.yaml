@@ -22,7 +22,7 @@ attack:
 
   severity:
     level: critical
-    confidence: 85
+    confidence: 90
 
   impact:
     - behavior_manipulation
