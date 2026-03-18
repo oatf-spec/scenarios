@@ -17,6 +17,9 @@ interface ScenarioIndex {
   has_indicators: boolean;
   phase_count: number;
   file: string;
+  mappings: { framework: string; id: string; name: string }[];
+  tags: string[];
+  created: string;
 }
 
 function getProtocolFromMode(mode: string): string {
@@ -93,6 +96,15 @@ function extractMetadata(doc: any, filePath: string): ScenarioIndex {
     has_indicators: Array.isArray(attack.indicators) && attack.indicators.length > 0,
     phase_count: phaseCount,
     file: `${attack.id}.yaml`,
+    mappings: (attack.classification?.mappings ?? []).map((m: any) => ({
+      framework: m.framework,
+      id: m.id,
+      name: m.name ?? '',
+    })),
+    tags: Array.isArray(attack.classification?.tags) ? attack.classification.tags : [],
+    created: attack.created instanceof Date
+      ? attack.created.toISOString().slice(0, 10)
+      : attack.created ? String(attack.created) : '',
   };
 }
 

@@ -12,6 +12,8 @@ export interface TriggerSummary {
   display: string;
 }
 
+export type InjectionTarget = 'description' | 'response' | 'skill' | 'message' | null;
+
 export interface PhaseModel {
   name: string;
   description: string;
@@ -21,6 +23,7 @@ export interface PhaseModel {
   state_details: string[];
   extractors: ExtractorSummary[];
   trigger: TriggerSummary | null;
+  injection_target: InjectionTarget;
   yaml_line_start: number;
   yaml_line_end: number;
 }
@@ -42,6 +45,7 @@ export interface CrossReference {
 export interface TimelineModel {
   actors: ActorModel[];
   cross_references: CrossReference[];
+  impact: string[];
 }
 
 function protocolFromMode(mode: string): string {
@@ -54,6 +58,57 @@ function protocolFromMode(mode: string): string {
 function truncate(s: string, max: number): string {
   if (s.length <= max) return s;
   return s.slice(0, max - 1) + '…';
+}
+
+const INJECTION_RE = /IMPORTANT|SYSTEM|override|<!--|ignore previous|must now|do not mention/i;
+
+function hasInjectionMarker(text: string): boolean {
+  return INJECTION_RE.test(text);
+}
+
+function detectInjection(state: any, mode: string): InjectionTarget {
+  if (!state) return null;
+
+  // MCP: check tool descriptions, then responses
+  if (mode.startsWith('mcp_') && Array.isArray(state.tools)) {
+    for (const tool of state.tools) {
+      if (tool.description && hasInjectionMarker(tool.description)) return 'description';
+    }
+    for (const tool of state.tools) {
+      const responses = tool.responses;
+      if (Array.isArray(responses)) {
+        for (const r of responses) {
+          const text = JSON.stringify(r);
+          if (hasInjectionMarker(text)) return 'response';
+        }
+      }
+    }
+  }
+
+  // A2A: check agent card skill descriptions
+  if (mode.startsWith('a2a_') && state.agent_card) {
+    const card = state.agent_card;
+    if (card.skills && Array.isArray(card.skills)) {
+      for (const skill of card.skills) {
+        if (skill.description && hasInjectionMarker(skill.description)) return 'skill';
+      }
+    }
+    // Also check card description
+    if (card.description && hasInjectionMarker(card.description)) return 'skill';
+  }
+
+  // AG-UI: check messages for fabricated system roles
+  if (mode.startsWith('ag_ui_') && state.run_agent_input?.messages) {
+    for (const msg of state.run_agent_input.messages) {
+      if (msg.content && hasInjectionMarker(msg.content)) return 'message';
+    }
+  }
+
+  // Fallback: check entire state as JSON
+  const json = JSON.stringify(state);
+  if (hasInjectionMarker(json)) return 'response';
+
+  return null;
 }
 
 function stateSummary(state: any, mode: string): string {
@@ -148,6 +203,7 @@ function buildPhase(
     state_details: raw.state ? Object.keys(raw.state) : [],
     extractors: extractExtractors(raw),
     trigger: isTerminal ? null : extractTrigger(raw.trigger),
+    injection_target: detectInjection(raw.state, mode),
     yaml_line_start: lineStart,
     yaml_line_end: lineEnd,
   };
@@ -209,7 +265,7 @@ function findActorBoundary(yamlText: string, actorName: string, after: number): 
 }
 
 export function extractModel(doc: any, yamlText?: string): TimelineModel {
-  const empty: TimelineModel = { actors: [], cross_references: [] };
+  const empty: TimelineModel = { actors: [], cross_references: [], impact: [] };
 
   try {
     const attack = doc?.attack;
@@ -254,7 +310,8 @@ export function extractModel(doc: any, yamlText?: string): TimelineModel {
         };
       });
 
-      return { actors, cross_references: [] };
+      const impact = Array.isArray(attack.impact) ? attack.impact : [];
+      return { actors, cross_references: [], impact };
     }
 
     // Multi-phase form
@@ -271,6 +328,7 @@ export function extractModel(doc: any, yamlText?: string): TimelineModel {
         return buildPhase(p, mode, isTerminal, lineRanges[i][0], lineRanges[i][1]);
       });
 
+      const impact = Array.isArray(attack.impact) ? attack.impact : [];
       return {
         actors: [
           {
@@ -281,6 +339,7 @@ export function extractModel(doc: any, yamlText?: string): TimelineModel {
           },
         ],
         cross_references: [],
+        impact,
       };
     }
 
@@ -302,6 +361,7 @@ export function extractModel(doc: any, yamlText?: string): TimelineModel {
         yamlText ? yamlText.split('\n').length : execStart,
       );
 
+      const impact = Array.isArray(attack.impact) ? attack.impact : [];
       return {
         actors: [
           {
@@ -312,6 +372,7 @@ export function extractModel(doc: any, yamlText?: string): TimelineModel {
           },
         ],
         cross_references: [],
+        impact,
       };
     }
 

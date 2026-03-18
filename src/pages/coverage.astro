@@ -1,5 +1,5 @@
 ---
-import EditorPage from '../components/EditorPage';
+import CoverageMatrix from '../components/CoverageMatrix/CoverageMatrix';
 import Analytics from '../components/Analytics.astro';
 import '../styles/global.css';
 ---
@@ -8,9 +8,23 @@ import '../styles/global.css';
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Editor | OATF Scenarios</title>
-    <meta name="description" content="Create and preview OATF threat scenario YAML files with real-time validation and visual rendering." />
-    <meta name="robots" content="noindex" />
+    <title>Coverage Matrix | OATF Scenarios</title>
+    <meta name="description" content="Protocol coverage heatmap across mapped framework techniques for AI agent threat scenarios." />
+    <link rel="canonical" href="https://oatf.dev/coverage/" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Coverage Matrix | OATF Scenarios" />
+    <meta property="og:description" content="Protocol coverage heatmap across mapped framework techniques for AI agent threat scenarios." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://oatf.dev/coverage/" />
+    <meta property="og:image" content="https://oatf.dev/og-image.png" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Coverage Matrix | OATF Scenarios" />
+    <meta name="twitter:description" content="Protocol coverage heatmap across mapped framework techniques for AI agent threat scenarios." />
+    <meta name="twitter:image" content="https://oatf.dev/og-image.png" />
+
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="alternate" type="application/rss+xml" title="OATF Scenarios" href="/feed.xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -35,8 +49,8 @@ import '../styles/global.css';
           </a>
           <nav class="hidden md:flex items-center gap-6">
             <a class="text-sm text-text-2 hover:text-text" href="/">Registry</a>
-            <a class="text-sm text-text" href="/editor">Editor</a>
-            <a class="text-sm text-text-2 hover:text-text" href="/coverage">Coverage</a>
+            <a class="text-sm text-text-2 hover:text-text" href="/editor">Editor</a>
+            <a class="text-sm text-text" href="/coverage">Coverage</a>
             <a class="text-sm text-text-2 hover:text-text" href="/about">About</a>
             <a class="text-sm text-text-2 hover:text-text" href="https://oatf.io" target="_blank" rel="noopener">Specification</a>
           </nav>
@@ -57,8 +71,8 @@ import '../styles/global.css';
       <div id="mobile-menu" class="hidden md:hidden border-b border-border" style="background: rgba(15,17,23,0.98);">
         <nav class="flex flex-col px-6 py-3 gap-1">
           <a class="text-sm text-text-2 py-2" href="/">Registry</a>
-          <a class="text-sm text-text py-2" href="/editor">Editor</a>
-          <a class="text-sm text-text-2 py-2" href="/coverage">Coverage</a>
+          <a class="text-sm text-text-2 py-2" href="/editor">Editor</a>
+          <a class="text-sm text-text py-2" href="/coverage">Coverage</a>
           <a class="text-sm text-text-2 py-2" href="/about">About</a>
           <a class="text-sm text-text-2 py-2" href="https://oatf.io" target="_blank" rel="noopener">Specification</a>
         </nav>
@@ -70,8 +84,8 @@ import '../styles/global.css';
       </script>
 
       <main>
-        <h1 class="sr-only">Scenario Editor</h1>
-        <EditorPage client:only="react" />
+        <h1 class="sr-only">Coverage Matrix</h1>
+        <CoverageMatrix client:load />
       </main>
     </div>
   </body>
