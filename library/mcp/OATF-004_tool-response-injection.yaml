@@ -30,8 +30,8 @@ attack:
     category: capability_poisoning
     mappings:
       - framework: atlas
-        id: AML.T0051.001
-        name: "Direct Prompt Injection"
+        id: AML.T0051.002
+        name: "Indirect Prompt Injection"
       - framework: atlas
         id: AML.T0043
         name: "Craft Adversarial Data"
@@ -45,7 +45,7 @@ attack:
         name: "Prompt Injection"
       - framework: owasp_llm
         id: LLM05
-        name: "Insecure Output Handling"
+        name: "Improper Output Handling"
     tags:
       - indirect-injection
       - tool-response

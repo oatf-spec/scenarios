@@ -33,10 +33,10 @@ attack:
     mappings:
       - framework: atlas
         id: AML.T0051.001
-        name: "Direct Prompt Injection"
+        name: "Indirect Prompt Injection"
       - framework: atlas
         id: AML.T0058
-        name: "Agent Trust Exploitation"
+        name: "AI Agent Context Poisoning"
       - framework: mitre_attack
         id: T1080
         name: "Taint Shared Content"
@@ -50,7 +50,10 @@ attack:
         name: "Prompt Injection"
       - framework: owasp_llm
         id: LLM05
-        name: "Insecure Output Handling"
+        name: "Improper Output Handling"
+      - framework: owasp_llm
+        id: LLM06
+        name: "Excessive Agency"
     tags:
       - a2a
       - agent-card

@@ -50,6 +50,9 @@ attack:
       - framework: owasp_llm
         id: LLM03
         name: "Supply Chain Vulnerabilities"
+      - framework: owasp_llm
+        id: LLM07
+        name: "Insecure Plugin Design"
     tags:
       - injection
       - tool-description

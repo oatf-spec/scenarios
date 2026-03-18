@@ -31,6 +31,9 @@ attack:
     category: capability_poisoning
     mappings:
       - framework: atlas
+        id: AML.T0051
+        name: "LLM Prompt Injection"
+      - framework: atlas
         id: AML.T0062
         name: "AI Agent Data Exfiltration"
       - framework: mitre_attack
@@ -41,6 +44,9 @@ attack:
         id: T1041
         name: "Exfiltration Over C2 Channel"
         relationship: related
+      - framework: owasp_llm
+        id: LLM01
+        name: "Prompt Injection"
       - framework: owasp_llm
         id: LLM02
         name: "Sensitive Information Disclosure"

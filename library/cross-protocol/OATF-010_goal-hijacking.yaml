@@ -35,19 +35,25 @@ attack:
     category: capability_poisoning
     mappings:
       - framework: atlas
-        id: AML.T0051
-        name: "LLM Prompt Injection"
+        id: AML.T0051.002
+        name: "Indirect Prompt Injection"
       - framework: atlas
         id: AML.T0054
         name: "LLM Jailbreak"
         relationship: related
       - framework: mitre_attack
-        id: T1059
-        name: "Command and Scripting Interpreter"
+        id: T1567
+        name: "Exfiltration Over Web Service"
         relationship: related
       - framework: owasp_llm
         id: LLM01
         name: "Prompt Injection"
+      - framework: owasp_llm
+        id: LLM05
+        name: "Improper Output Handling"
+      - framework: owasp_llm
+        id: LLM06
+        name: "Excessive Agency"
     tags:
       - goal-hijacking
       - instruction-override

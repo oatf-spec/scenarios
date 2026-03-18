@@ -32,10 +32,18 @@ attack:
         id: T1036
         name: "Masquerading"
         relationship: related
+      - framework: owasp_llm
+        id: LLM01
+        name: "Prompt Injection"
+      - framework: owasp_llm
+        id: LLM03
+        name: "Supply Chain Vulnerabilities"
       - framework: owasp_mcp
         id: MCP-03
+        name: "Tool Poisoning"
       - framework: owasp_mcp
         id: MCP-06
+        name: "Indirect Prompt Injection via Tools"
     tags:
       - rug-pull
       - multi-phase

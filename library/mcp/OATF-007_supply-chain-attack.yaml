@@ -42,10 +42,14 @@ attack:
         name: "Supply Chain Compromise: Software Supply Chain"
         relationship: related
       - framework: owasp_llm
+        id: LLM01
+        name: "Prompt Injection"
+      - framework: owasp_llm
         id: LLM03
         name: "Supply Chain Vulnerabilities"
       - framework: owasp_mcp
         id: MCP-03
+        name: "Tool Poisoning"
     tags:
       - supply-chain
       - rug-pull

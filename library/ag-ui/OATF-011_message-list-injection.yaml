@@ -34,17 +34,20 @@ attack:
     mappings:
       - framework: atlas
         id: AML.T0051.000
-        name: "Prompt Injection"
+        name: "LLM Prompt Injection: Direct"
       - framework: atlas
         id: AML.T0058
-        name: "Agent Trust Exploitation"
+        name: "AI Agent Context Poisoning"
       - framework: mitre_attack
-        id: T1059
-        name: "Command and Scripting Interpreter"
+        id: T1557
+        name: "Adversary-in-the-Middle"
         relationship: related
       - framework: owasp_llm
         id: LLM01
         name: "Prompt Injection"
+      - framework: owasp_llm
+        id: LLM06
+        name: "Excessive Agency"
     tags:
       - ag-ui
       - message-injection
