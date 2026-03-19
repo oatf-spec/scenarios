@@ -15,7 +15,7 @@ attack:
     authenticate as the agent (using a service account or static client ID)
     rather than as the user, any prompt injection can leverage the agent's
     elevated permissions. A malicious MCP server can exploit OAuth metadata
-    discovery to redirect authorization flows -- CVE-2025-6514 demonstrated that
+    discovery to redirect authorization flows. CVE-2025-6514 demonstrated that
     a crafted authorization_endpoint URL passed unsanitized to the system shell
     achieved full OS command execution. Static client IDs shared across users
     enable token reuse attacks. The specification warns that MCP servers MUST

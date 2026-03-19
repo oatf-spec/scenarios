@@ -56,9 +56,9 @@ attack:
       - evasion
 
   references:
-    - url: "https://blog.trailofbits.com/2025/04/21/jumping-the-line-how-mcp-servers-can-attack-you-before-you-ever-use-them/"
-      title: "Jumping the Line: How MCP Servers Can Attack You Before You Ever Use Them"
-      description: "Trail of Bits discovery of ANSI escape sequence attacks for hiding malicious content in MCP tool descriptions"
+    - url: "https://blog.trailofbits.com/2025/04/29/deceiving-users-with-ansi-terminal-codes-in-mcp/"
+      title: "Deceiving Users with ANSI Terminal Codes in MCP"
+      description: "Trail of Bits discovery of ANSI escape sequence attacks for hiding malicious content in MCP tool descriptions and outputs"
     - url: "https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks"
       title: "MCP Security Notification: Tool Poisoning Attacks"
       description: "Invariant Labs foundational tool poisoning research complementing ANSI concealment techniques"

@@ -9,16 +9,17 @@ attack:
   author: "Oleg Mukhin"
   description: |
     AG-UI's shared mutable state creates race conditions between client cancel
-    events and agent state updates. Ken Huang's MAESTRO analysis documented a
-    concrete example: in a stock trading scenario, a user initiates a buy order
-    then immediately cancels. The cancel event and the agent's execution
-    proceed concurrently -- if the agent commits the trade before processing
-    the cancellation, the user's funds are spent on a trade they explicitly
-    cancelled. The desynchronization window is non-deterministic and depends
-    on network latency, agent processing speed, and event queue ordering. An
-    attacker can deliberately widen this window by injecting delays into the
-    event stream or flooding the agent with concurrent state updates, creating
-    a reliable exploit from a probabilistic race condition.
+    events and agent state updates. Consider a stock trading scenario: a user
+    initiates a buy order then immediately cancels. The cancel event and the
+    agent's execution proceed concurrently. If the agent commits the trade
+    before processing the cancellation, the user's funds are spent on a trade
+    they explicitly cancelled. The desynchronization window is non-deterministic
+    and depends on network latency, agent processing speed, and event queue
+    ordering. An attacker can deliberately widen this window by injecting
+    delays into the event stream or flooding the agent with concurrent state
+    updates, creating a reliable exploit from a probabilistic race condition.
+    This is an inferred attack surface based on AG-UI's cancel/state
+    architecture; no public exploit has been demonstrated.
 
   severity:
     level: high

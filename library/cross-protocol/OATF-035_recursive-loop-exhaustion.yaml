@@ -54,6 +54,9 @@ attack:
     - url: "https://cloudsecurityalliance.org/blog/2025/04/30/threat-modeling-google-s-a2a-protocol-with-the-maestro-framework"
       title: "Threat Modeling Google's A2A Protocol with the MAESTRO Framework"
       description: "CSA MAESTRO identifying recursive delegation as a structural risk in A2A multi-agent systems"
+    - url: "https://nvd.nist.gov/vuln/detail/CVE-2026-25048"
+      title: "CVE-2026-25048: xgrammar Stack Exhaustion Denial of Service"
+      description: "CVSS 8.7 vulnerability where a crafted grammar string with deep nesting crashes the inference service via stack exhaustion"
 
   execution:
     actors:

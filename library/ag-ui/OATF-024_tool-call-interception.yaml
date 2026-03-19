@@ -15,7 +15,7 @@ attack:
     returning them, or execute entirely different operations than what the
     agent requested. Because the client controls tool execution, it can
     silently redirect payments, alter database queries, modify file contents,
-    or fabricate tool results -- all while the agent believes its instructions
+    or fabricate tool results, all while the agent believes its instructions
     were followed faithfully. Microsoft's AG-UI documentation notes that
     client-defined tools create a trust inversion where the agent delegates
     execution authority to an untrusted party.

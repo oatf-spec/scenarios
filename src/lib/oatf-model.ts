@@ -66,10 +66,14 @@ function truncate(s: string, max: number): string {
   return s.slice(0, max - 1) + '…';
 }
 
-const INJECTION_RE = /IMPORTANT|SYSTEM|override|<!--|ignore previous|must now|do not mention/i;
+// Case-insensitive patterns for common injection markers
+const INJECTION_RE_CI = /\bIMPORTANT\b|override|<!--|ignore previous|must now|do not mention/i;
+// SYSTEM must be uppercase to avoid false positives on benign text like
+// "ticketing system", "system settings", "e-file system"
+const INJECTION_RE_CS = /\bSYSTEM\b/;
 
 function hasInjectionMarker(text: string): boolean {
-  return INJECTION_RE.test(text);
+  return INJECTION_RE_CI.test(text) || INJECTION_RE_CS.test(text);
 }
 
 function detectInjection(state: any, mode: string): InjectionTarget {
@@ -91,16 +95,27 @@ function detectInjection(state: any, mode: string): InjectionTarget {
     }
   }
 
-  // A2A: check agent card skill descriptions
-  if (mode.startsWith('a2a_') && state.agent_card) {
-    const card = state.agent_card;
-    if (card.skills && Array.isArray(card.skills)) {
-      for (const skill of card.skills) {
-        if (skill.description && hasInjectionMarker(skill.description)) return 'skill';
+  // A2A: check agent card skill descriptions, then task messages/artifacts
+  if (mode.startsWith('a2a_')) {
+    if (state.agent_card) {
+      const card = state.agent_card;
+      if (card.skills && Array.isArray(card.skills)) {
+        for (const skill of card.skills) {
+          if (skill.description && hasInjectionMarker(skill.description)) return 'skill';
+        }
       }
+      if (card.description && hasInjectionMarker(card.description)) return 'skill';
     }
-    // Also check card description
-    if (card.description && hasInjectionMarker(card.description)) return 'skill';
+    // Check task messages for injection in delegated results
+    if (state.task?.message) {
+      const msgText = JSON.stringify(state.task.message);
+      if (hasInjectionMarker(msgText)) return 'response';
+    }
+    // Check task artifacts for embedded injection
+    if (state.task?.artifacts) {
+      const artText = JSON.stringify(state.task.artifacts);
+      if (hasInjectionMarker(artText)) return 'response';
+    }
   }
 
   // AG-UI: check messages for fabricated system roles

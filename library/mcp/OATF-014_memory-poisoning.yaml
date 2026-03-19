@@ -9,7 +9,7 @@ attack:
   author: "Oleg Mukhin"
   description: |
     Unlike transient prompt injection, memory poisoning targets persistent
-    storage -- RAG stores, vector databases, or agent memory systems -- to
+    storage (RAG stores, vector databases, or agent memory systems) to
     achieve delayed, session-independent behavioral manipulation. AgentPoison
     (NeurIPS 2024) achieved 80%+ attack success rates with less than 0.1%
     poisoning ratio against autonomous driving and healthcare agents.
@@ -19,8 +19,8 @@ attack:
     poisoning is decoupled in time (inject today, execute weeks later) and
     extremely difficult to detect because it manifests as subtle behavioral
     drift rather than obvious instruction-following. An attacker who can write
-    to an agent's memory store -- via a poisoned MCP tool response that the
-    agent saves, or by directly injecting into a shared RAG corpus -- can
+    to an agent's memory store, whether via a poisoned MCP tool response that
+    the agent saves or by directly injecting into a shared RAG corpus, can
     establish persistent backdoor behavior that survives session restarts and
     context window resets.
 
@@ -61,11 +61,14 @@ attack:
       - behavioral-drift
 
   references:
-    - url: "https://arxiv.org/abs/2407.02606"
+    - url: "https://arxiv.org/abs/2407.12784"
       title: "AgentPoison: Red-teaming LLM Agents via Poisoning Memory or Knowledge Bases"
       description: "NeurIPS 2024 paper achieving 80%+ attack success with less than 0.1% poisoning ratio on RAG-based agents"
-    - url: "https://arxiv.org/abs/2503.22177"
-      title: "Injecting Prompts to Hijack the Memory of LLM Agents"
+    - url: "https://arxiv.org/abs/2512.16962"
+      title: "MemoryGraft: Persistent Compromise of LLM Agents via Poisoned Experience Retrieval"
+      description: "December 2025 paper demonstrating trigger-free persistent behavioral drift through poisoned experience retrieval"
+    - url: "https://arxiv.org/abs/2503.03704"
+      title: "A Practical Memory Injection Attack against LLM Agents"
       description: "Research on indirect prompt injection targeting agent memory systems for persistent behavioral manipulation"
     - url: "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
       title: "OWASP Top 10 for Agentic Applications 2026"

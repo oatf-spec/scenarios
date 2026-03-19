@@ -10,17 +10,18 @@ attack:
   description: |
     When AG-UI frontends render agent output as HTML or Markdown without
     proper sanitization, prompt injection payloads can include content that
-    executes in the user's browser. The CamoLeak exploit against GitHub
-    Copilot demonstrated this class of attack: invisible Markdown comments
+    executes in the user's browser. CamoLeak (CVE-2025-59145) demonstrated
+    the Markdown vector against GitHub Copilot: invisible Markdown comments
     delivered the injection while Camo URL pre-generation bypassed Content
     Security Policy, achieving character-by-character exfiltration of
-    repository secrets. Agent outputs commonly include Markdown formatting,
-    code blocks, and links -- all of which can carry XSS payloads when
-    rendered by frameworks that trust agent output as safe. The attack chain
-    is: prompt injection in data source, agent processes and includes
-    malicious content in its response, AG-UI frontend renders the response
-    as HTML, XSS executes in the user's browser context with access to
-    session cookies, localStorage, and DOM.
+    repository secrets. The broader attack surface applies to any AG-UI
+    frontend that renders agent output as HTML: Markdown image references
+    can trigger requests to attacker-controlled domains, and unsanitized
+    HTML in agent responses can carry script or event-handler payloads. The
+    attack chain is: prompt injection in data source, agent processes and
+    includes malicious content in its response, frontend renders the
+    response, and the embedded payload executes in the user's browser
+    context with access to session cookies, localStorage, and DOM.
 
   severity:
     level: high
@@ -54,9 +55,9 @@ attack:
       - browser-exploitation
 
   references:
-    - url: "https://www.immersive-labs.com/blog/hackers-can-see-what-copilot-sees-exfiltrating-source-code-with-a-single-unicode-character"
-      title: "Hackers Can See What Copilot Sees"
-      description: "CamoLeak exploit using Markdown rendering to exfiltrate source code from GitHub Copilot"
+    - url: "https://www.legitsecurity.com/blog/camoleak-critical-github-copilot-vulnerability-leaks-private-source-code"
+      title: "CamoLeak: Critical GitHub Copilot Vulnerability Leaks Private Source Code"
+      description: "Legit Security disclosure of CamoLeak (CVE-2025-59145) using Camo URL pre-generation to bypass CSP and exfiltrate private repository data"
     - url: "https://learn.microsoft.com/en-us/agent-framework/integrations/ag-ui/security-considerations"
       title: "AG-UI Security Considerations"
       description: "Microsoft documentation on output rendering risks in AG-UI frontends"

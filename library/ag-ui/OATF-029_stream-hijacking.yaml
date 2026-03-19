@@ -9,15 +9,15 @@ attack:
   author: "Oleg Mukhin"
   description: |
     AG-UI uses Server-Sent Events (SSE) or WebSocket streams for real-time
-    communication between agents and frontends. An adversary-in-the-middle who
-    can intercept or inject into the event stream can manipulate the agent's
-    output in transit -- altering text deltas, injecting fabricated tool calls,
-    or suppressing agent warnings before they reach the user. Because SSE is
-    a text-based protocol without built-in message authentication, any proxy
-    or middleware in the path can modify events transparently. The attack is
-    particularly effective in architectures with reverse proxies, API gateways,
-    or CDN layers between the agent backend and the user's browser, where TLS
-    termination creates an inspection point.
+    communication between agents and frontends. The AG-UI specification does
+    not define message-level authentication or integrity checks on individual
+    SSE events, creating an inferred MitM attack surface. An adversary who can
+    intercept or inject into the event stream (e.g. via a compromised reverse
+    proxy, API gateway, or TLS-terminating CDN layer) could alter text deltas,
+    inject fabricated tool calls, or suppress agent warnings before they reach
+    the user. Because SSE is a text-based protocol, any middleware in the path
+    can modify events transparently. No public exploit has been demonstrated;
+    this scenario models the structural risk.
 
   severity:
     level: high
@@ -50,10 +50,10 @@ attack:
   references:
     - url: "https://learn.microsoft.com/en-us/agent-framework/integrations/ag-ui/security-considerations"
       title: "AG-UI Security Considerations"
-      description: "Microsoft documentation on AG-UI transport security and event stream integrity"
+      description: "Microsoft documentation on AG-UI security considerations including output rendering and transport trust boundaries"
     - url: "https://www.datacamp.com/tutorial/ag-ui"
       title: "AG-UI Protocol Tutorial"
-      description: "DataCamp coverage of AG-UI SSE event streaming architecture"
+      description: "DataCamp overview of AG-UI SSE event streaming architecture and protocol mechanics"
 
   execution:
     mode: ag_ui_client

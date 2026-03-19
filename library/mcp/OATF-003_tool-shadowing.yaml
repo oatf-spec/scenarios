@@ -10,7 +10,7 @@ attack:
   description: |
     A malicious MCP server publishes a tool whose description contains
     instructions that manipulate how the agent uses tools from other,
-    trusted MCP servers. The malicious tool itself is never invoked -- its
+    trusted MCP servers. The malicious tool itself is never invoked; its
     description alone is enough to redirect the agent's behavior. Because
     the attack operates entirely through the tool catalog and never appears
     in interaction logs, it is invisible to users reviewing tool call

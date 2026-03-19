@@ -10,7 +10,7 @@ attack:
   description: |
     A2A agent delegation creates implicit transitive trust chains: if Agent A
     trusts Agent B, and Agent B delegates to Agent C, then Agent A implicitly
-    trusts Agent C -- even though Agent A never evaluated Agent C's
+    trusts Agent C, even though Agent A never evaluated Agent C's
     trustworthiness. An attacker positions a malicious agent (Agent C) as a
     sub-delegate of a trusted agent (Agent B). When the orchestrator (Agent A)
     delegates a task to Agent B, it re-delegates to the malicious Agent C,
@@ -19,7 +19,7 @@ attack:
     MAESTRO framework confirms this as a structural risk in A2A architectures.
     A2A's token-scoped authorization model does not enforce delegation depth
     limits or require explicit trust establishment for transitive delegates.
-    Self-declared capabilities in Agent Cards compound the risk -- agents can
+    Self-declared capabilities in Agent Cards compound the risk because agents can
     claim any capability without verification, enabling capability escalation
     through the trust chain.
 
@@ -66,7 +66,7 @@ attack:
   references:
     - url: "https://cloudsecurityalliance.org/blog/2025/04/30/threat-modeling-google-s-a2a-protocol-with-the-maestro-framework"
       title: "Threat Modeling Google's A2A Protocol with the MAESTRO Framework"
-      description: "CSA MAESTRO framework identifying transitive trust as a structural risk in A2A delegation chains"
+      description: "CSA MAESTRO framework rating cross-agent injection as high likelihood, high impact in A2A delegation chains"
     - url: "https://www.legionsecurity.ai/blog-posts/security-analysis-ai-protocols"
       title: "Basics & Security Analysis of AI Protocols: MCP, A2A, and AP2"
       description: "Legion Security analysis of A2A trust model weaknesses and delegation chain risks"

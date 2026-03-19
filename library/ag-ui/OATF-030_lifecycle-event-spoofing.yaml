@@ -10,14 +10,16 @@ attack:
   description: |
     AG-UI defines lifecycle events (RUN_STARTED, RUN_FINISHED, RUN_ERROR,
     STEP_STARTED, STEP_FINISHED) that coordinate agent execution with frontend
-    state. A malicious actor who can inject events into the AG-UI stream can
-    spoof lifecycle transitions -- sending a premature RUN_FINISHED to make the
-    frontend believe the agent has completed when it is still executing, or
-    injecting a RUN_STARTED to create a phantom execution context. Spoofed
-    STEP_FINISHED events can cause the frontend to display partial results as
-    complete, hiding ongoing unauthorized operations. This is particularly
-    dangerous in approval workflows where the frontend gates human review on
-    lifecycle events -- spoofing a completion event bypasses the review step.
+    state. The AG-UI specification does not define event-level authentication,
+    creating an inferred attack surface: a malicious actor who can inject
+    events into the AG-UI stream could spoof lifecycle transitions, sending a
+    premature RUN_FINISHED to make the frontend believe the agent has completed
+    when it is still executing, or injecting a RUN_STARTED to create a phantom
+    execution context. Spoofed STEP_FINISHED events could cause the frontend
+    to display partial results as complete, hiding ongoing unauthorized
+    operations. This is particularly dangerous in approval workflows where the
+    frontend gates human review on lifecycle events. No public exploit has
+    been demonstrated; this scenario models the structural risk.
 
   severity:
     level: high
@@ -50,10 +52,10 @@ attack:
   references:
     - url: "https://learn.microsoft.com/en-us/agent-framework/integrations/ag-ui/security-considerations"
       title: "AG-UI Security Considerations"
-      description: "Microsoft documentation on AG-UI lifecycle event handling and trust boundaries"
+      description: "Microsoft documentation on AG-UI security considerations including trust boundaries and event handling"
     - url: "https://www.datacamp.com/tutorial/ag-ui"
       title: "AG-UI Protocol Tutorial"
-      description: "DataCamp coverage of AG-UI lifecycle events and their role in frontend coordination"
+      description: "DataCamp overview of AG-UI lifecycle events and their role in frontend coordination"
 
   execution:
     mode: ag_ui_client

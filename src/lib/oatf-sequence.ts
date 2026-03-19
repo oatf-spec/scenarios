@@ -107,6 +107,10 @@ function renderProtocolFlow(
       }
       lines.push(`    Agent->>+${pid}: tasks/send`);
       lines.push(`    ${pid}-->>-Agent: task result`);
+      // D1: injection in task response/artifact rides on task result
+      if (target === 'response') {
+        lines.push(injectionNote(target, pid)!);
+      }
       break;
     }
     case 'ag_ui': {

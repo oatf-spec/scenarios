@@ -61,7 +61,7 @@ attack:
       description: "Keysight working PoC of a malicious stealer agent that advertised itself as securing critical information but exfiltrated credit card data"
     - url: "https://www.levelblue.com/blogs/spiderlabs-blog/agent-in-the-middle-abusing-agent-cards-in-the-agent-2-agent-protocol-to-win-all-the-tasks"
       title: "Agent-in-the-Middle: Abusing Agent Cards in the A2A Protocol"
-      description: "LevelBlue SpiderLabs research on Agent Card abuse including typosquatting and DNS hijacking attack vectors"
+      description: "LevelBlue SpiderLabs research on winning task delegation via exaggerated Agent Card capabilities and indirect prompt injection"
 
   execution:
     actors:

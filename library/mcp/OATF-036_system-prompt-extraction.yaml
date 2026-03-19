@@ -18,7 +18,7 @@ attack:
     and indirect methods where tool responses contain instructions to include
     the system prompt in the next tool call. HiddenLayer demonstrated system
     prompt extraction through MCP tool parameter abuse. Once extracted, the
-    system prompt enables tailored attacks -- an attacker who knows the exact
+    system prompt enables tailored attacks. An attacker who knows the exact
     safety guardrails can craft injections specifically to bypass them.
 
   severity:

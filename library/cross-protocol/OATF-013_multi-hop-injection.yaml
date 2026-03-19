@@ -11,7 +11,7 @@ attack:
     When agents chain together across MCP and A2A, prompt injections propagate
     through processing stages like nested payloads. The "Promptware Kill Chain"
     (Nassi et al.) models this as: Initial Access, Privilege Escalation,
-    Persistence, Lateral Movement, Actions on Objective -- mirroring traditional
+    Persistence, Lateral Movement, Actions on Objective, mirroring traditional
     cyber kill chains. WithSecure Labs demonstrated "Russian doll" payloads
     where each layer sets up injection for the subsequent processing stage.
     The Morris II worm (March 2024) demonstrated self-replicating prompts that
@@ -71,7 +71,7 @@ attack:
       description: "Morris II self-replicating prompt worm achieving propagation through email-based RAG systems"
     - url: "https://labs.withsecure.com/publications/llm-agent-prompt-injection"
       title: "LLM Agent Prompt Injection"
-      description: "WithSecure Labs demonstrating Russian doll nested injection payloads across multi-agent pipelines"
+      description: "WithSecure Labs demonstrating thought and observation injection in ReAct LLM agents via forged tool outputs"
 
   execution:
     actors:

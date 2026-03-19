@@ -9,12 +9,13 @@ attack:
   author: "Oleg Mukhin"
   description: |
     A2A tasks are transmitted over HTTP with Server-Sent Events (SSE) for
-    streaming. An adversary-in-the-middle who can intercept A2A traffic can
-    hijack in-flight tasks by replaying or modifying task messages. Because A2A
-    task IDs are client-generated and the protocol does not mandate message
-    signing or sequence numbers, an attacker who observes a task ID can inject
-    additional messages into the task stream or replay completed task results
-    to manipulate the orchestrator. The A2A specification relies on transport
+    streaming. As of A2A specification v0.2 (May 2025), task IDs are
+    client-generated and the protocol does not mandate message signing or
+    sequence numbers. An adversary-in-the-middle who can intercept A2A
+    traffic can hijack in-flight tasks by replaying or modifying task
+    messages. An attacker who observes a task ID can inject additional
+    messages into the task stream or replay completed task results to
+    manipulate the orchestrator. The specification relies on transport
     security (TLS) but does not provide application-layer message integrity,
     leaving tasks vulnerable in environments with TLS termination proxies,
     compromised intermediaries, or misconfigured mTLS.

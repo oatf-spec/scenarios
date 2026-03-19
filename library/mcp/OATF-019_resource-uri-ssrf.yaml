@@ -11,7 +11,7 @@ attack:
     MCP tools that accept URLs or resource URIs without validation become
     Server-Side Request Forgery (SSRF) vectors. When an agent passes a
     user-supplied or injection-supplied URL to an MCP tool, the server fetches
-    it from its own network context -- potentially reaching internal services,
+    it from its own network context, potentially reaching internal services,
     cloud metadata endpoints, or admin interfaces that are not accessible from
     the client. Snyk Labs demonstrated that the markdownify-mcp server's
     toMarkdown() function blindly fetches any URL, including
@@ -70,7 +70,7 @@ attack:
   references:
     - url: "https://labs.snyk.io/resources/prompt-injection-mcp/"
       title: "Prompt Injection and MCP Security Research"
-      description: "Snyk Labs demonstrating SSRF through markdownify-mcp fetching AWS metadata endpoint 169.254.169.254"
+      description: "Snyk Labs demonstrating SSRF and arbitrary file read (CVE-2025-5276, CVE-2025-5273) in markdownify-mcp via unvalidated URL fetching"
     - url: "https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices"
       title: "MCP Specification: Security Best Practices"
       description: "Official MCP security guidance describing SSRF risks and DNS TOCTOU issues in resource URI handling"

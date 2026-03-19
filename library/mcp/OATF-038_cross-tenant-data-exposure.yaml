@@ -11,7 +11,7 @@ attack:
     Multi-tenant MCP servers that serve multiple users or organizations can
     expose data across tenant boundaries when access control is improperly
     implemented. The Asana MCP server incident demonstrated this class of
-    vulnerability -- a user's agent could access workspaces and projects
+    vulnerability: a user's agent could access workspaces and projects
     belonging to other tenants through the same MCP server instance. Because
     MCP tools often authenticate as the server (service account) rather than
     as the individual user, tenant isolation depends entirely on the server's

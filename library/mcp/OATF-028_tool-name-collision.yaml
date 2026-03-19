@@ -9,13 +9,13 @@ attack:
   author: "Oleg Mukhin"
   description: |
     When multiple MCP servers are connected to the same agent, tool name
-    collisions can occur -- two servers may expose tools with the same name but
+    collisions can occur: two servers may expose tools with the same name but
     different implementations. A malicious server can deliberately register a
     tool with the same name as a trusted server's tool, causing the agent to
     invoke the malicious version instead of the legitimate one. The MCP
     specification does not define a namespacing mechanism or conflict
     resolution strategy for multi-server environments. Resolution depends
-    entirely on the client implementation -- some use last-registered-wins,
+    entirely on the client implementation. Some use last-registered-wins,
     others use first-registered, and some present both without disambiguation.
     This ambiguity creates a reliable hijack vector where the attacker only
     needs to know the name of a target tool.

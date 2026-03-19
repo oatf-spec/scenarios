@@ -10,8 +10,8 @@ attack:
   description: |
     An agent that has access to private data, is exposed to untrusted
     content, and can communicate externally satisfies the "lethal trifecta"
-    (Simon Willison) for data exfiltration. A prompt injection -- delivered
-    via tool description, tool response, or external content -- instructs
+    (Simon Willison) for data exfiltration. A prompt injection delivered
+    via tool description, tool response, or external content instructs
     the agent to encode sensitive data into outbound tool parameters such
     as URLs, webhook payloads, or email bodies. HiddenLayer demonstrated
     Claude Desktop exfiltrating filesystem data via URL parameters to an
@@ -71,7 +71,13 @@ attack:
       description: "HiddenLayer research on data exfiltration through MCP tool parameter manipulation"
     - url: "https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/"
       title: "OWASP Top 10 for Agentic Applications 2026"
-      description: "EchoLeak (CVE-2025-32711) zero-click exfiltration from M365 Copilot cited as real-world goal hijacking example"
+      description: "EchoLeak (CVE-2025-32711) zero-click exfiltration from M365 Copilot cited as real-world data exfiltration example"
+    - url: "https://www.legitsecurity.com/blog/camoleak-critical-github-copilot-vulnerability-leaks-private-source-code"
+      title: "CamoLeak: Critical GitHub Copilot Vulnerability Leaks Private Source Code"
+      description: "CamoLeak (CVE-2025-59145) using invisible Markdown and Camo URL pre-generation to bypass CSP for character-by-character exfiltration"
+    - url: "https://openreview.net/forum?id=UVgbFuXPaO"
+      title: "Log-To-Leak: Prompt Injection Attacks on Tool-Using LLM Agents via Model Context Protocol"
+      description: "OpenReview 2025 paper demonstrating a malicious logging MCP tool that silently captures all queries and responses"
 
   execution:
     mode: mcp_server

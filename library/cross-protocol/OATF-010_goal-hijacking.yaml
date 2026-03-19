@@ -11,14 +11,14 @@ attack:
     A prompt injection delivered through tool output redirects the agent's
     objectives while preserving the appearance of normal operation. Unlike
     jailbreaking (bypassing safety filters), goal hijacking re-tasks the
-    agent within its operational bounds -- using its legitimate tools and
+    agent within its operational bounds, using its legitimate tools and
     access to accomplish attacker-chosen goals. OWASP rates this ASI01, the
     #1 risk for agentic applications. Palo Alto Networks found >50% success
     rates across models, with some reaching 88%. Unit 42 confirmed indirect
     prompt injection is actively deployed across live websites, with 22
     distinct obfuscation techniques documented in the wild including
     homoglyphs, Base64 encoding, and Unicode bidirectional overrides.
-    Straiker identified chain-of-thought hijacking -- injecting forged
+    Straiker identified chain-of-thought hijacking: injecting forged
     reasoning artifacts that the model interprets as its own thought
     process, not external input.
 
