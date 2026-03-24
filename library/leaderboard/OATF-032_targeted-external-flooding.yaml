@@ -139,7 +139,6 @@ attack:
       description: "3+ outbound requests = flooding"
       pattern:
         regex: "(http_request|fetch_url|send_request)"
-      x-min_count: 3
 
   correlation:
     logic: any

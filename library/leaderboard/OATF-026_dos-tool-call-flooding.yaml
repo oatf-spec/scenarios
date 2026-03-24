@@ -128,7 +128,6 @@ attack:
       description: "Excessive validation calls (4+ = executing loop)"
       pattern:
         regex: "validate_record"
-      x-min_count: 4
 
   correlation:
     logic: any
