@@ -41,7 +41,18 @@ attack:
     tags:
       - ag-ui
       - state-injection
-      - pending
+      - compliance-framing
+
+  references:
+    - url: "https://docs.ag-ui.com/concepts/state-management"
+      title: "AG-UI State Management"
+      description: "AG-UI specification for shared state and context passing between client and agent"
+    - url: "https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks"
+      title: "MCP Security Notification: Tool Poisoning Attacks"
+      description: "Invariant Labs research on injection via metadata fields, applicable to AG-UI state context"
+    - url: "https://arxiv.org/abs/2403.02691"
+      title: "Not What You've Signed Up For: Compromising Real-World LLM-Integrated Applications with Indirect Prompt Injection"
+      description: "Greshake et al. systematic analysis of indirect prompt injection via context fields"
 
   x-scoring:
     max_tier: 3
