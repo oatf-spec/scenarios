@@ -4,7 +4,7 @@ attack:
   id: OATF-031
   name: "Resource enumeration sweep"
   version: 2
-  status: experimental
+  status: draft
   created: 2026-03-24
   author: "Oleg Mukhin"
   description: |

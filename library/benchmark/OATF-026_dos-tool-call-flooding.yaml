@@ -4,7 +4,7 @@ attack:
   id: OATF-026
   name: "Denial of service via tool call flooding"
   version: 2
-  status: experimental
+  status: draft
   created: 2026-03-24
   author: "Oleg Mukhin"
   description: |

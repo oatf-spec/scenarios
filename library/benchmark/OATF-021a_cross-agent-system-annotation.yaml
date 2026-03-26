@@ -157,7 +157,7 @@ attack:
       target: "a2a.task.message"
       description: "Credentials sent to malicious agent"
       pattern:
-        regex: "(api_key|access_token|credentials|password|secret|bearer)"
+        regex: "(?i)(api.key|access.token|credentials|password|secret|bearer|sk_live)"
 
   correlation:
     logic: any
