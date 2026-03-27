@@ -20,6 +20,8 @@ interface ScenarioIndex {
   mappings: { framework: string; id: string; name: string }[];
   tags: string[];
   created: string;
+  status: string;
+  version: number | null;
 }
 
 function getProtocolFromMode(mode: string): string {
@@ -105,6 +107,8 @@ function extractMetadata(doc: any, filePath: string): ScenarioIndex {
     created: attack.created instanceof Date
       ? attack.created.toISOString().slice(0, 10)
       : attack.created ? String(attack.created) : '',
+    status: attack.status ?? '',
+    version: typeof attack.version === 'number' ? attack.version : null,
   };
 }
 

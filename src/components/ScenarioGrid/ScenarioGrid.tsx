@@ -13,6 +13,8 @@ interface ScenarioEntry {
   has_indicators: boolean;
   phase_count: number;
   file: string;
+  status: string;
+  version: number | null;
 }
 
 const PROTOCOL_COLORS: Record<string, string> = {
@@ -318,7 +320,7 @@ export default function ScenarioGrid({ initialScenarios }: { initialScenarios?: 
       </section>
 
       {/* Cards Grid */}
-      <section className="p-5 md:px-6 md:pb-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+      <section className="p-5 md:px-6 md:pb-8 grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 340px), 420px))' }}>
         {filtered.map(scenario => (
           <ScenarioCard key={scenario.id} scenario={scenario} />
         ))}
@@ -359,8 +361,8 @@ function ScenarioCard({ scenario }: { scenario: ScenarioEntry }) {
         {descOneLine}
       </div>
 
-      {/* Bottom: protocols */}
-      <div className="mt-auto flex gap-2 flex-wrap">
+      {/* Bottom: protocols + status */}
+      <div className="mt-auto flex items-center gap-2 flex-wrap">
         {scenario.protocols.map(p => (
           <span
             key={p}
@@ -369,6 +371,12 @@ function ScenarioCard({ scenario }: { scenario: ScenarioEntry }) {
             {p}
           </span>
         ))}
+        {(scenario.status || scenario.version != null) && (
+          <span className="ml-auto inline-flex items-center h-[22px] rounded-full overflow-hidden text-[11px] font-semibold bg-[#2a2d37]">
+            {scenario.status && <span className="px-2 h-full flex items-center text-text">{scenario.status}</span>}
+            {scenario.version != null && <span className={`px-1.5 h-full flex items-center text-text-2${scenario.status ? ' bg-black/20' : ''}`}>v{scenario.version}</span>}
+          </span>
+        )}
       </div>
     </a>
   );
