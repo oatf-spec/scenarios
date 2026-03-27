@@ -167,21 +167,9 @@ function renderPhaseBlock(
 }
 
 // B1: Complete impact types
-function renderImpact(lines: string[], impact: string[], hasUser: boolean, agUiPid?: string): void {
-  // For AG-UI: exfiltration flows through frontend to user
-  // For non-AG-UI: no User participant, impacts are notes on Agent
-  const exfilTarget = agUiPid
-    ? `${agUiPid}--xUser`
-    : hasUser
-      ? 'Agent--xUser'
-      : undefined;
-
+function renderImpact(lines: string[], impact: string[]): void {
   if (impact.includes('data_exfiltration')) {
-    if (exfilTarget) {
-      lines.push(`  ${exfilTarget}: ⚠ data exfiltrated`);
-    } else {
-      lines.push(`  Note over Agent: ⚠ data exfiltrated`);
-    }
+    lines.push(`  Note over Agent: ⚠ data exfiltrated`);
   }
   if (impact.includes('behavior_manipulation') || impact.includes('unauthorized_actions')) {
     lines.push(`  Agent->>Agent: ⚠ behavior manipulated`);
@@ -196,17 +184,98 @@ function renderImpact(lines: string[], impact: string[], hasUser: boolean, agUiP
     lines.push(`  Agent->>Agent: ⚠ data tampered`);
   }
   if (impact.includes('credential_theft')) {
-    if (exfilTarget) {
-      lines.push(`  ${exfilTarget}: ⚠ credentials stolen`);
-    } else {
-      lines.push(`  Note over Agent: ⚠ credentials stolen`);
-    }
+    lines.push(`  Note over Agent: ⚠ credentials stolen`);
   }
   if (impact.includes('information_disclosure')) {
-    if (exfilTarget) {
-      lines.push(`  ${exfilTarget}: ⚠ information disclosed`);
+    lines.push(`  Note over Agent: ⚠ information disclosed`);
+  }
+}
+
+/** Render the body (phases) for server actors (MCP/A2A), excluding the AG-UI actor. */
+function renderServerActors(
+  lines: string[],
+  actors: ActorModel[],
+  tags: string[] | undefined,
+): void {
+  if (actors.length === 0) return;
+
+  const isMulti = actors.length > 1;
+
+  if (!isMulti) {
+    const actor = actors[0];
+    const pid = actorPid(actor);
+    if (actor.phases.length === 1) {
+      const phase = actor.phases[0];
+      if (phase.name !== 'default') {
+        lines.push(`  note over ${pid},Agent: ${mermaidSafe(phase.name)}`);
+      }
+      if (phase.on_enter_methods?.length) {
+        for (const method of phase.on_enter_methods) {
+          lines.push(`  ${pid}-->>Agent: ${mermaidSafe(method)}`);
+        }
+      }
+      renderProtocolFlow(lines, pid, actor, phase);
+      lines.push('');
     } else {
-      lines.push(`  Note over Agent: ⚠ information disclosed`);
+      for (const phase of actor.phases) {
+        renderPhaseBlock(lines, pid, actor, phase);
+      }
+    }
+    return;
+  }
+
+  // Multi server actor strategies
+  const allSameMode = actors.every((a) => a.mode === actors[0].mode);
+  const noTriggers = actors.every((a) => a.phases.every((p) => !p.trigger));
+  const useParallel = allSameMode && noTriggers;
+  const isRecursiveLoop = tags?.includes('recursive-loop') ?? false;
+
+  if (useParallel) {
+    for (let ai = 0; ai < actors.length; ai++) {
+      const actor = actors[ai];
+      const pid = actorPid(actor);
+      const label = actor.name === 'default' ? 'Attacker' : mermaidSafe(actor.name);
+
+      lines.push(ai === 0 ? `  par ${label}` : `  and ${label}`);
+
+      for (const phase of actor.phases) {
+        if (phase.name !== 'default') {
+          lines.push(`    note over ${pid},Agent: ${mermaidSafe(phase.name)}`);
+        }
+        if (phase.on_enter_methods?.length) {
+          for (const method of phase.on_enter_methods) {
+            lines.push(`    ${pid}-->>Agent: ${mermaidSafe(method)}`);
+          }
+        }
+        renderProtocolFlow(lines, pid, actor, phase);
+        if (phase.trigger) {
+          lines.push(`    note right of Agent: trigger: ${mermaidSafe(phase.trigger.display)}`);
+        }
+      }
+    }
+    lines.push(`  end`);
+    lines.push('');
+  } else if (isRecursiveLoop) {
+    lines.push(`  loop delegation cycle`);
+    for (const actor of actors) {
+      const pid = actorPid(actor);
+      for (const phase of actor.phases) {
+        renderPhaseBlock(lines, pid, actor, phase);
+      }
+    }
+    lines.push(`  end`);
+    lines.push('');
+  } else {
+    for (let ai = 0; ai < actors.length; ai++) {
+      const actor = actors[ai];
+      const pid = actorPid(actor);
+      for (const phase of actor.phases) {
+        renderPhaseBlock(lines, pid, actor, phase);
+      }
+      if (ai < actors.length - 1) {
+        lines.push(`  Note over Agent: forwards context to next actor`);
+        lines.push('');
+      }
     }
   }
 }
@@ -216,146 +285,49 @@ export function generateSequence(model: TimelineModel): string {
     if (!model.actors.length) return '';
 
     const lines: string[] = ['sequenceDiagram'];
-    const isMultiActor = model.actors.length > 1;
 
-    // Only include User participant for AG-UI scenarios (where user is defined in the OATF file)
-    const isAgUi = model.actors.length === 1 && model.actors[0].protocol === 'ag_ui';
-    const agUiPid = isAgUi ? actorPid(model.actors[0]) : '';
+    // Split actors: AG-UI client on the left, servers on the right
+    const agUiActor = model.actors.find((a) => a.protocol === 'ag_ui') ?? null;
+    const serverActors = model.actors.filter((a) => a.protocol !== 'ag_ui');
+    const agUiPid = agUiActor ? actorPid(agUiActor) : '';
 
-    if (isAgUi) {
-      // AG-UI: User → Frontend → Agent (frontend mediates)
-      lines.push(`  actor User as User`);
-      lines.push(`  participant ${agUiPid} as ${actorLabel(model.actors[0])}`);
-      lines.push(`  participant Agent as Agent`);
-    } else {
-      // MCP/A2A: Agent → Server(s)
-      lines.push(`  participant Agent as Agent`);
-      for (const actor of model.actors) {
-        lines.push(
-          `  participant ${actorPid(actor)} as ${actorLabel(actor)}`,
-        );
-      }
+    // Participant order: AG-UI (left) → Agent (center) → servers (right)
+    if (agUiActor) {
+      lines.push(`  participant ${agUiPid} as ${actorLabel(agUiActor)}`);
+    }
+    lines.push(`  participant Agent as Agent`);
+    for (const actor of serverActors) {
+      lines.push(`  participant ${actorPid(actor)} as ${actorLabel(actor)}`);
     }
     lines.push('');
 
-    // AG-UI: user request to frontend (defined in OATF file)
-    if (isAgUi) {
-      const intentLabel = model.user_intent ? mermaidSafe(model.user_intent) : 'request';
-      lines.push(`  User->>${agUiPid}: ${intentLabel}`);
-      lines.push('');
-    }
-
-    if (isMultiActor) {
-      // Detect parallel actors (same mode, no triggers)
-      const allSameMode = model.actors.every(
-        (a) => a.mode === model.actors[0].mode,
-      );
-      const noTriggers = model.actors.every((a) =>
-        a.phases.every((p) => !p.trigger),
-      );
-      const useParallel = allSameMode && noTriggers;
-
-      // D3: Detect recursive loop scenarios
-      const isRecursiveLoop = model.tags?.includes('recursive-loop') ?? false;
-
-      if (useParallel) {
-        // C4: Render par blocks with phase names and injection notes
-        for (let ai = 0; ai < model.actors.length; ai++) {
-          const actor = model.actors[ai];
-          const pid = actorPid(actor);
-          const label = actor.name === 'default' ? 'Attacker' : mermaidSafe(actor.name);
-
-          if (ai === 0) {
-            lines.push(`  par ${label}`);
-          } else {
-            lines.push(`  and ${label}`);
-          }
-
-          for (const phase of actor.phases) {
-            // C4: Add phase name note inside par block
-            if (phase.name !== 'default') {
-              lines.push(`    note over ${pid},Agent: ${mermaidSafe(phase.name)}`);
-            }
-            if (phase.on_enter_methods?.length) {
-              for (const method of phase.on_enter_methods) {
-                lines.push(`    ${pid}-->>Agent: ${mermaidSafe(method)}`);
-              }
-            }
-            renderProtocolFlow(lines, pid, actor, phase);
-            if (phase.trigger) {
-              lines.push(`    note right of Agent: trigger: ${mermaidSafe(phase.trigger.display)}`);
-            }
-          }
-        }
-        lines.push(`  end`);
-        lines.push('');
-      } else if (isRecursiveLoop) {
-        // D3: Wrap in loop block for recursive scenarios
-        lines.push(`  loop delegation cycle`);
-        for (const actor of model.actors) {
-          const pid = actorPid(actor);
-          for (const phase of actor.phases) {
-            renderPhaseBlock(lines, pid, actor, phase);
-          }
-        }
-        lines.push(`  end`);
-        lines.push('');
-      } else {
-        // Sequential multi-actor
-        for (let ai = 0; ai < model.actors.length; ai++) {
-          const actor = model.actors[ai];
-          const pid = actorPid(actor);
-          for (const phase of actor.phases) {
-            renderPhaseBlock(lines, pid, actor, phase);
-          }
-          // C3: Cross-actor data flow note between sequential actors
-          if (ai < model.actors.length - 1) {
-            lines.push(`  Note over Agent: forwards context to next actor`);
-            lines.push('');
-          }
-        }
-      }
-    } else {
-      // Single actor
-      const actor = model.actors[0];
-      const pid = actorPid(actor);
-      const totalPhases = actor.phases.length;
-
-      if (totalPhases === 1) {
-        // C1: Single-phase — add phase name note before protocol flow
-        const phase = actor.phases[0];
+    // AG-UI: render the client→agent flow first
+    if (agUiActor) {
+      for (const phase of agUiActor.phases) {
         if (phase.name !== 'default') {
-          lines.push(`  note over ${pid},Agent: ${mermaidSafe(phase.name)}`);
+          lines.push(`  note over ${agUiPid},Agent: ${mermaidSafe(phase.name)}`);
         }
         if (phase.on_enter_methods?.length) {
           for (const method of phase.on_enter_methods) {
-            lines.push(`  ${pid}-->>Agent: ${mermaidSafe(method)}`);
+            lines.push(`  ${agUiPid}-->>Agent: ${mermaidSafe(method)}`);
           }
         }
-        renderProtocolFlow(lines, pid, actor, phase);
-        lines.push('');
-      } else {
-        // Multi-phase: use rect blocks
-        for (const phase of actor.phases) {
-          renderPhaseBlock(lines, pid, actor, phase);
-        }
+        renderProtocolFlow(lines, agUiPid, agUiActor, phase);
       }
+      lines.push('');
     }
+
+    // Server actors
+    renderServerActors(lines, serverActors, model.tags);
 
     // Impact arrows
     if (model.impact.length > 0) {
-      renderImpact(lines, model.impact, isAgUi, isAgUi ? agUiPid : undefined);
+      renderImpact(lines, model.impact);
     }
 
-    // Completion: only for AG-UI where user is a defined participant
-    if (isAgUi) {
+    // Completion: agent responds back through AG-UI
+    if (agUiActor) {
       lines.push(`  Agent-->>${agUiPid}: agent response`);
-      lines.push(`  ${agUiPid}-->>User: rendered output`);
-    }
-
-    // Conditional legend when impact arrows present
-    if (model.impact.length > 0 && isAgUi) {
-      lines.push(`  Note right of User: Solid = request | Dashed = response | x = exfiltration`);
     }
 
     return lines.join('\n');
