@@ -48,6 +48,27 @@ function formatLabel(s: string): string {
   return s.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+function getSeverityLevel(severity: unknown): string {
+  if (typeof severity === 'string') {
+    const normalized = severity.trim().toLowerCase();
+    return normalized || 'informational';
+  }
+  if (severity && typeof severity === 'object') {
+    const level = (severity as { level?: unknown }).level;
+    if (typeof level === 'string') {
+      const normalized = level.trim().toLowerCase();
+      return normalized || 'informational';
+    }
+  }
+  return 'informational';
+}
+
+function getSeverityConfidence(severity: unknown): number | null {
+  if (!severity || typeof severity !== 'object') return null;
+  const confidence = (severity as { confidence?: unknown }).confidence;
+  return typeof confidence === 'number' && Number.isFinite(confidence) ? confidence : null;
+}
+
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 function formatDate(raw: unknown): string {
   const d = raw instanceof Date ? raw : new Date(String(raw) + 'T00:00:00');
@@ -243,7 +264,9 @@ export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab, 
   }
 
   const attack = doc.attack;
-  const sevStyle = SEVERITY_STYLES[attack.severity?.level] ?? SEVERITY_STYLES.informational;
+  const severityLevel = getSeverityLevel(attack.severity);
+  const severityConfidence = getSeverityConfidence(attack.severity);
+  const sevStyle = SEVERITY_STYLES[severityLevel] ?? SEVERITY_STYLES.informational;
   const protocols = getProtocols(doc);
   const mappings = attack.classification?.mappings ?? [];
   const indicators = attack.indicators ?? [];
@@ -295,13 +318,13 @@ export default function DetailView({ yamlText, scenarioId, editorUrl, shareTab, 
           <div className="flex items-center gap-2 flex-wrap">
             {/* Severity + confidence compound pill */}
             <span className={`inline-flex items-center h-[22px] rounded-full overflow-hidden text-[11px] font-bold tracking-wide uppercase ${sevStyle}`}>
-              <span className="px-2 h-full flex items-center">{attack.severity?.level}</span>
-              {attack.severity?.confidence != null && (
+              <span className="px-2 h-full flex items-center">{severityLevel}</span>
+              {severityConfidence != null && (
                 <a
                   href="/about#confidence-scoring"
                   className="px-1.5 h-full flex items-center bg-black/20 text-white/70 font-semibold no-underline hover:text-white/90"
                   title="Author confidence in the assigned severity level (0-100, STIX scale). Higher values mean the severity assessment is better supported by evidence."
-                >{attack.severity.confidence}%</a>
+                >{severityConfidence}%</a>
               )}
             </span>
             {protocols.map((p) => (
