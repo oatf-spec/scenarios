@@ -24,6 +24,21 @@ interface ScenarioIndex {
   version: number | null;
 }
 
+function normalizeSeverityLevel(severity: unknown): string {
+  if (typeof severity === 'string') {
+    const normalized = severity.trim().toLowerCase();
+    return normalized || 'unknown';
+  }
+  if (severity && typeof severity === 'object') {
+    const level = (severity as { level?: unknown }).level;
+    if (typeof level === 'string') {
+      const normalized = level.trim().toLowerCase();
+      return normalized || 'unknown';
+    }
+  }
+  return 'unknown';
+}
+
 function getProtocolFromMode(mode: string): string {
   if (mode.startsWith('mcp_')) return 'MCP';
   if (mode.startsWith('a2a_')) return 'A2A';
@@ -90,7 +105,7 @@ function extractMetadata(doc: any, filePath: string): ScenarioIndex {
     id: attack.id,
     name: attack.name,
     description: description.length > 200 ? description.slice(0, 200) + '...' : description,
-    severity_level: attack.severity?.level ?? 'unknown',
+    severity_level: normalizeSeverityLevel(attack.severity),
     protocols: [...protocols],
     interaction_models: [...interactionModels],
     classification_category: attack.classification?.category ?? 'uncategorized',
